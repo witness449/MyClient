@@ -4,6 +4,7 @@
 #include<QByteArray>
 #include<QTcpSocket>
 
+//Утилита записи в сокет объекта типа QByteArray
 bool WriteToSocketAny(QByteArray data, QTcpSocket* socket)
 {
     int remaining=data.size();

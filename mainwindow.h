@@ -38,6 +38,8 @@ private slots:
     void syncConnected();
     void syncDisconnected();
 
+    void on_find_clicked();
+
 signals:
     void stopSync();
 

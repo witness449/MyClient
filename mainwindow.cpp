@@ -246,3 +246,20 @@ void MainWindow::on_roomBox_activated(const QString &arg1)
     QObject::connect(thread, SIGNAL(incomingMessageSync(QString)), this, SLOT(incomingMessageMWSlot(QString)));
     QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot()));
 }
+
+void MainWindow::on_find_clicked()
+{
+    MyRequest sendRequest;
+    sendRequest.setMethod("POST");
+    sendRequest.setVersion("HTTP/1.1");
+    sendRequest.setPath("/create_room");
+
+    QJsonObject jsonObject;
+    jsonObject["creatorLogin"] = login;
+    jsonObject["clientLogin"]=ui->findUserEdit->text();
+
+    QJsonDocument document=QJsonDocument(jsonObject);
+    QByteArray sendData = document.toJson();
+
+    sendRequest.write(sendData, true, &socketPut);
+}

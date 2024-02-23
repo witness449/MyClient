@@ -246,3 +246,15 @@ void MainWindow::on_roomBox_activated(const QString &arg1)
     QObject::connect(thread, SIGNAL(incomingMessageSync(QString)), this, SLOT(incomingMessageMWSlot(QString)));
     QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot()));
 }
+
+void MainWindow::on_find_clicked()
+{
+    MyRequest sendRequest;
+    sendRequest.setMethod("PUT");
+    sendRequest.setVersion("HTTP/1.1");
+    sendRequest.setPath("/send");
+
+    QJsonObject jsonObject;
+    //jsonObject["creatorLogin"] = text;
+    //jsonObject
+}

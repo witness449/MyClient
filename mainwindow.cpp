@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QList<QString> textList=pMyDB->takeMessages();
     for(QString & x:textList)
     ui->chatBrowser->append(x);
+
 }
 
 MainWindow::~MainWindow()
@@ -50,7 +51,14 @@ MainWindow::~MainWindow()
 void MainWindow::on_connButton_clicked()
 {
     if ((socketPut.state()!=QAbstractSocket::ConnectedState)||(socketPut.state()!=QAbstractSocket::ConnectingState)){ //НЕ ПРОВЕРЯЕТ!!!
-        socketPut.connectToHost(address, port);
+        /*QFile certfile("D:\\HttpQt\\MyClient\\MyClient\\MyClient\\ca.crt");
+        certfile.open(QIODevice::ReadOnly);
+        QSslCertificate cert(&certfile,QSsl::Pem);
+        socketPut.setLocalCertificate(cert);
+        certfile.close();*/
+        socketPut.connectToHostEncrypted(adr, port);
+        QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), &socketPut, static_cast<void (QSslSocket::*)()>(&QSslSocket::ignoreSslErrors));
+        //QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), this, &MainWindow::printSslErrors);
         connect(&socketPut,SIGNAL(connected()),this,SLOT(slotConnected()));
         connect(&socketPut,SIGNAL(disconnected()),this,SLOT(slotDisconnected()));
         connect(&socketPut,SIGNAL(readyRead()),this,SLOT(readFromServer()));
@@ -120,7 +128,10 @@ void MainWindow::on_authButton_clicked()
 
 void MainWindow::readFromServer()
 {
-    MyResponse& presponse=*new MyResponse();
+    if(presponse.getStatus()!=MyResponse::waitForBody)
+    {
+        presponse=*new MyResponse();
+    }
 
     while (socketPut.bytesAvailable() &&
            presponse.getStatus()!=MyResponse::complete &&
@@ -222,7 +233,7 @@ void MainWindow::syncDisconnected()
     emit stopSync();
 }*/
 
-void MainWindow::on_roomBox_activated(const QString &arg1)
+void MainWindow::on_roomBox_activated(const QString &arg1) //arg - Логин, а нужно Id комнаты, в токен д передаваться не arg а токен
 {
     if (count!=0)
     {
@@ -262,4 +273,12 @@ void MainWindow::on_find_clicked()
     QByteArray sendData = document.toJson();
 
     sendRequest.write(sendData, true, &socketPut);
+}
+
+void MainWindow::printSslErrors(const QList<QSslError> & erList)
+{
+   for (auto el: erList)
+   {
+       qDebug()<<el;
+   }
 }

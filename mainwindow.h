@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QHostAddress>
 #include <QTcpSocket>
+#include <QSslSocket>
+#include "myresponse.h"
 #include "syncthread.h"
 #include "mydatabase.h"
 
@@ -40,6 +42,8 @@ private slots:
 
     void on_find_clicked();
 
+    void printSslErrors(const QList<QSslError> & erList);
+
 signals:
     void stopSync();
 
@@ -50,7 +54,7 @@ private:
     QHostAddress address;
 
     Ui::MainWindow *ui;
-    QTcpSocket socketPut; //Сокет для соединения с сервером и отправки сообщений
+    QSslSocket socketPut; //Сокет для соединения с сервером и отправки сообщений
     MyDatabase* pMyDB; //Указатель набазу данных
     SyncThread* thread; //Поток для организации синхронизации
 
@@ -60,6 +64,8 @@ private:
     int authorizationFlag=false;
 
     QList<QString> Rooms; //Список чатов
+
+    MyResponse& presponse= *new MyResponse(); //Костыль. Либо изза кривых рук либо кривой библиотеки
 
     static int count;
 };

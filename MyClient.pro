@@ -35,3 +35,13 @@ FORMS    += mainwindow.ui
 CONFIG +=C++11
 
 
+win32:CONFIG(release, debug|release): LIBS +=-LD:/tools/OpenSSL/vc-win32/lib/ -llibcrypto
+
+INCLUDEPATH += D:/tools/OpenSSL/vc-win32/include
+DEPENDPATH += D:/tools/OpenSSL/vc-win32/include
+
+win32:CONFIG(release, debug|release): LIBS +=-LD:/tools/OpenSSL/vc-win32/lib/ -llibssl
+
+INCLUDEPATH += D:/tools/OpenSSL/vc-win32/include
+DEPENDPATH += D:/tools/OpenSSL/vc-win32/include
+

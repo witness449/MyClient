@@ -5,6 +5,7 @@
 #include <QHostAddress>
 #include <QTcpSocket>
 #include <QSslSocket>
+#include <QMap>
 #include "myresponse.h"
 #include "syncthread.h"
 #include "mydatabase.h"
@@ -64,6 +65,7 @@ private:
     int authorizationFlag=false;
 
     QList<QString> Rooms; //Список чатов
+    QMap <QString, int>RoomNames;
 
     MyResponse& presponse= *new MyResponse(); //Костыль. Либо изза кривых рук либо кривой библиотеки
 

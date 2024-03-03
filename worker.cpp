@@ -6,7 +6,7 @@
 #include <thread>
 #include <QFile>
 
-Worker::Worker(QString authToken, QObject *parent, int last_Id)
+Worker::Worker(QString authToken, QString log, QObject *parent, int last_Id)
 {
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
@@ -22,6 +22,7 @@ Worker::Worker(QString authToken, QObject *parent, int last_Id)
 
     authorizationToken=authToken;
     lastId=last_Id;
+    login=log;
 
     connect(this, SIGNAL(startWorker()), this, SLOT(startWorkerSlot()));
     connect(this, SIGNAL(startSync()), this, SLOT(startSyncSlot()));
@@ -35,18 +36,30 @@ Worker::Worker(QString authToken, QObject *parent, int last_Id)
 
 void Worker::startWorkerSlot()
 {
-    socketSync=new QTcpSocket();
+    /*socketSync=new QTcpSocket();
     if (socketSync->state()!=QAbstractSocket::ConnectedState){
         connect(socketSync,SIGNAL(connected()),this,SLOT(slotSyncConnected()));
         connect(socketSync,SIGNAL(disconnected()),this,SLOT(slotSyncDisconnected()));
+        connect(socketSync,SIGNAL(readyRead()),this,SLOT(readFromServer()));*/
+
+socketSync=new QSslSocket();
+    if (socketSync->state()!=QAbstractSocket::ConnectedState){
+
+        QObject::connect(socketSync, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), socketSync, static_cast<void (QSslSocket::*)()>(&QSslSocket::ignoreSslErrors));
+        //QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), this, &MainWindow::printSslErrors);
+        connect(socketSync,SIGNAL(connected()),this,SLOT(slotSyncConnected()));
+        connect(socketSync,SIGNAL(disconnected()),this,SLOT(slotSyncDisconnected()));
         connect(socketSync,SIGNAL(readyRead()),this,SLOT(readFromServer()));
+
+
         emit ToConnect();
     }
 }
 
 void Worker::connectSlot()
 {
-    socketSync->connectToHost(adress, port);
+    socketSync->connectToHostEncrypted(adr, port);
+    //socketSync->connectToHost(adress, port);
 }
 
 void Worker::slotSyncConnected(){
@@ -65,6 +78,7 @@ void Worker:: startSyncSlot()
     syncRequest.appendHeader("Id", last_Id);
     QByteArray authToken=authorizationToken.toUtf8();
     syncRequest.appendHeader("Auth_token", authToken);
+    syncRequest.appendHeader("Login", login.toUtf8());
 
     QByteArray ba=0;
 

@@ -113,17 +113,17 @@ void MainWindow::on_authButton_clicked()
     authRequest.setVersion("HTTP/1.1");
     authRequest.setPath("/auth");
 
-    login=ui->loginEdit->text();
+    /*login=ui->loginEdit->text();
     password=ui->passwordEdit->text();
 
     authRequest.appendHeader("Content-Type", "application/json");
     QJsonObject jsonObject;
-    jsonObject["Login"] = login;
-    jsonObject["Password"] = password;
+    jsonObject["identifier"] = login;
+    jsonObject["password"] = password;
     QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray authData = document.toJson();
+    QByteArray authData = document.toJson();*/
 
-    authRequest.write(authData, true, &socketPut);
+    authRequest.write(QByteArray(), true, &socketPut);
 }
 
 void MainWindow::readFromServer()
@@ -143,7 +143,34 @@ void MainWindow::readFromServer()
     }
 
     QByteArray reqType=presponse.findHeader("request-type");
-    if(QString::localeAwareCompare(reqType, "Authorization")==0)
+
+    if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
+    {
+        QByteArray bodyData(presponse.getBody());
+        QJsonDocument doc=QJsonDocument::fromJson(bodyData);
+        QJsonObject buffer=doc.object();
+
+        MyRequest authRequest;
+        authRequest.setMethod("POST");
+        authRequest.setVersion("HTTP/1.1");
+        authRequest.setPath("/auth");
+
+        login=ui->loginEdit->text();
+        password=ui->passwordEdit->text();
+
+        authRequest.appendHeader("Content-Type", "application/json");
+        QJsonObject jsonObject;
+        jsonObject["identifier"] = login;
+        jsonObject["password"] = password;
+        jsonObject["session"]=buffer["session"];
+        QJsonDocument document=QJsonDocument(jsonObject);
+        QByteArray authData = document.toJson();
+
+        authRequest.write(authData, true, &socketPut);
+    }
+
+
+    if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse.getBody().size()>0)
     {
         if (!authorizationFlag)
         {
@@ -156,12 +183,13 @@ void MainWindow::readFromServer()
             int i=1;
             while(buffer[QString::number(i)+"Room"].toString()!=""){
                 Rooms.append(buffer[QString::number(i)+"Room"].toString());
+                RoomNames.insert(buffer[QString::number(i)+"Room"].toString().split(" ")[1], buffer[QString::number(i)+"Room"].toString().split(" ")[0].toInt());
                 i++;
             }
 
-            for(auto& el:Rooms)
+            for(auto& el:RoomNames)
             {
-                ui->roomBox->addItem(el);
+                ui->roomBox->addItem(RoomNames.key(el));
             }
 
             authorizationFlag=true;
@@ -187,7 +215,7 @@ void MainWindow::readFromServer()
 void MainWindow::on_sendButton_clicked()
 {
     MyRequest sendRequest;
-    sendRequest.setMethod("PUT");
+    sendRequest.setMethod("POST");
     sendRequest.setVersion("HTTP/1.1");
     sendRequest.setPath("/send");
 
@@ -197,8 +225,10 @@ void MainWindow::on_sendButton_clicked()
     QJsonObject jsonObject;
     jsonObject["message"] = text;
 
-    QString roomId=ui->roomBox->currentText();
-    jsonObject["room_id"] = roomId;
+    QString room=ui->roomBox->currentText();
+    jsonObject["room_id"] = QString::number(*RoomNames.find(room));
+
+    jsonObject["login"]=login;
 
     QJsonDocument document=QJsonDocument(jsonObject);
     QByteArray sendData = document.toJson();
@@ -244,11 +274,11 @@ void MainWindow::on_roomBox_activated(const QString &arg1) //arg - Логин, �
     pMyDB->dropTable();
     pMyDB->createTable();
     int lastId=pMyDB->selectMessageId()+1;
-    QString arg=arg1;
+    QString arg=QString::number(*RoomNames.find(arg1));
     QString authToken=authorizationToken.mid(0, 16);
     authToken+="_"+arg;
 
-    thread = new SyncThread(authToken, this, lastId);
+    thread = new SyncThread(authToken, login, this, lastId);
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
     thread->start();

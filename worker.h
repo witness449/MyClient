@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QHostAddress>
 #include <QTimer>
+#include <QSslSocket>
 #include "myresponse.h"
 
 //Потоковая функция объекта типа SyncThread
@@ -13,7 +14,7 @@ class Worker:public QObject
 {
     Q_OBJECT
 public:
-    explicit Worker(QString authToken,  QObject *parent = 0, int last_Id=0);
+    explicit Worker(QString authToken, QString login,  QObject *parent = 0, int last_Id=0);
 private slots:
     void slotSyncDisconnected();
     void readFromServer();
@@ -32,7 +33,7 @@ signals:
     void workerDisconnected();
 
 private:
-    QTcpSocket* socketSync;
+    QSslSocket* socketSync;
     QJsonObject buffer;
     QByteArray bytebuffer;
     int lastId;
@@ -41,6 +42,7 @@ private:
     qint16 port;
     QString adr;
     QHostAddress adress;
+    QString login;
 
     MyResponse* presponse;
 };

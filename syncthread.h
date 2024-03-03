@@ -13,7 +13,7 @@ class SyncThread:public QThread
     Q_OBJECT
 public:
     //В конструктор передается токен авторизации и id последнего загруженного сообщения в текущем чате
-    explicit SyncThread(QString authToken,  QObject *parent = 0, int lastId=0);
+    explicit SyncThread(QString authToken, QString login,  QObject *parent = 0, int lastId=0);
     void run();
 
 private slots:
@@ -30,6 +30,7 @@ private:
     //QTcpSocket* socketSync;
     int lastId;
     QString authorizationToken;
+    QString login;
 };
 
 #endif // SYNC_H

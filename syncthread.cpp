@@ -3,15 +3,16 @@
 #include "myrequest.h"
 #include "worker.h"
 
-SyncThread::SyncThread(QString authToken,  QObject* parent, int last_Id):QThread(parent)
+SyncThread::SyncThread(QString authToken,  QString log, QObject* parent, int last_Id):QThread(parent)
 {
     lastId=last_Id;
     authorizationToken=authToken;
+    login=log;
 }
 
 void SyncThread::run()
 {
-    Worker*pw=new Worker(authorizationToken,  this, lastId);
+    Worker*pw=new Worker(authorizationToken, login, this, lastId);
     QObject::connect(pw, SIGNAL(incomingMessage(QString)), this, SLOT(incomingMessageSlot(QString)));
     QObject::connect(pw, SIGNAL(workerConnected()), this, SLOT (workerConnectedSlot()));
     QObject::connect(pw, SIGNAL(workerDisonnected()), this, SLOT (workerDisconnectedSlot()));

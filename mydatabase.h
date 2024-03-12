@@ -7,6 +7,9 @@
 #include <QSqlQuery>
 #include <QSQLError>
 #include <QSqlRecord>
+#include <QMap>
+#include "room.h";
+#include "contact.h"
 
 //Класс реализующий работу с базой данных клиентского приложения
 class MyDatabase
@@ -26,6 +29,16 @@ public:
      //void insertTestMessages();
     QList<QString> takeMessages();//Получить сообщения текущего чата
     void insertMessage(QString); //Внести сообщение в текущий чат
+
+    QMap<int, bool> selectRooms();
+    QMap<int, int> selectTopMessages();
+    void insertRoom(Room r);
+    void insertContact(Contact c);
+
+    QSqlDatabase getDBPointer()
+    {
+        return myDB;
+    }
    };
 
 #endif // MYDATABASE_H

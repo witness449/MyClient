@@ -6,7 +6,19 @@
 #include <thread>
 #include <QFile>
 
-Worker::Worker(QString authToken, QString log, QObject *parent, int last_Id)
+QMap<int, QString> TokenParse(QString& accessToken, QString &login)
+{
+    QStringList pieces=accessToken.split(" ");
+    login=pieces[0];
+    QMap<int, QString> roomsTokens;
+    for (int i=1; i<pieces.size(); i+=2)
+    {
+         roomsTokens.insert(pieces[i].toInt(), pieces[i+1]);
+    }
+    return roomsTokens;
+}
+
+Worker::Worker(ClientState cState,  QString authToken, QString log, QObject *parent, int last_Id)
 {
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
@@ -23,6 +35,11 @@ Worker::Worker(QString authToken, QString log, QObject *parent, int last_Id)
     authorizationToken=authToken;
     lastId=last_Id;
     login=log;
+    clientState=cState;
+
+    QString token=cState.GetToken();
+
+    QMap<int, QString> rooms=TokenParse(token, login);
 
     connect(this, SIGNAL(startWorker()), this, SLOT(startWorkerSlot()));
     connect(this, SIGNAL(startSync()), this, SLOT(startSyncSlot()));

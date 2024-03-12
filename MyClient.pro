@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     mydatabase.cpp \
     myresponse.cpp \
     worker.cpp \
-    syncthread.cpp
+    syncthread.cpp \
+    clientstate.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
@@ -28,7 +29,10 @@ HEADERS  += mainwindow.h \
     mydatabase.h \
     myresponse.h \
     worker.h \
-    syncthread.h
+    syncthread.h \
+    room.h \
+    contact.h \
+    clientstate.h
 
 FORMS    += mainwindow.ui
 

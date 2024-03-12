@@ -5,6 +5,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
+#include <QJsonArray>
+#include "room.h"
 
 int MainWindow::count=0;
 
@@ -36,9 +38,24 @@ MainWindow::MainWindow(QWidget *parent) :
     //pMyDB->insertTestMessages();
     pMyDB->printTable();
 
+    clientState.SetLastEvents(pMyDB);
+    clientState.SetRooms(pMyDB);
+
     QList<QString> textList=pMyDB->takeMessages();
     for(QString & x:textList)
     ui->chatBrowser->append(x);
+
+    rooms=new QSqlTableModel(this, pMyDB->getDBPointer());
+    rooms->setTable("Rooms");
+
+    ui->tableView->setModel(rooms);
+    ui->tableView->hideColumn(0);
+    ui->tableView->hideColumn(2);
+    ui->tableView->hideColumn(3);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    connect(ui->tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+                 this, SLOT(slotSelectionChange(const QItemSelection &, const QItemSelection &))                );
 
 }
 
@@ -179,18 +196,42 @@ void MainWindow::readFromServer()
             QJsonObject buffer=doc.object();
 
             authorizationToken=buffer["Authorization_token"].toString();
+            QJsonArray RoomsArr= buffer["Rooms"].toArray();
 
             int i=1;
-            while(buffer[QString::number(i)+"Room"].toString()!=""){
-                Rooms.append(buffer[QString::number(i)+"Room"].toString());
-                RoomNames.insert(buffer[QString::number(i)+"Room"].toString().split(" ")[1], buffer[QString::number(i)+"Room"].toString().split(" ")[0].toInt());
-                i++;
+            //while(buffer[QString::number(i)+"Room"].toString()!=""){
+                //Rooms.append(buffer[QString::number(i)+"Room"].toString()); //Логин RoomsArr
+                //RoomNames.insert(buffer[QString::number(i)+"Room"].toString().split(" ")[1], buffer[QString::number(i)+"Room"].toString().split(" ")[0].toInt()); //Логиен RoomID
+                //i++;
+            for (auto el:RoomsArr)
+            {
+                Rooms.append(el.toObject()["id"].toString());
+                RoomNames.insert(el.toObject()["login"].toString(), el.toObject()["id"].toString().toInt());
+                Room room;
+                room.Id=el.toObject()["id"].toString().toInt();
+                room.Name=el.toObject()["login"].toString();
+                room.IsActive=1;
+
+                Contact c;
+                c.Login=el.toObject()["login"].toString();
+                c.IdRoom=el.toObject()["id"].toString().toInt();
+
+
+                pMyDB->insertRoom(room);
+                pMyDB->insertContact(c);
+                pMyDB->printTable();
+
+                ui->roomBox->addItem(el.toObject()["login"].toString());
             }
 
-            for(auto& el:RoomNames)
+            /*for(auto& el:RoomNames)
             {
                 ui->roomBox->addItem(RoomNames.key(el));
-            }
+            }*/
+
+            clientState.SetToken(authorizationToken);
+            clientState.SetRooms(pMyDB);
+            rooms->select();
 
             authorizationFlag=true;
             if (authorizationToken=="")
@@ -278,7 +319,7 @@ void MainWindow::on_roomBox_activated(const QString &arg1) //arg - Логин, �
     QString authToken=authorizationToken.mid(0, 16);
     authToken+="_"+arg;
 
-    thread = new SyncThread(authToken, login, this, lastId);
+    thread = new SyncThread(clientState, authToken, login, this, lastId);
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
     thread->start();
@@ -311,4 +352,15 @@ void MainWindow::printSslErrors(const QList<QSslError> & erList)
    {
        qDebug()<<el;
    }
+}
+
+void MainWindow::on_actionExit_2_triggered()
+{
+    pMyDB->dropTable();
+    this->close();
+}
+
+void MainWindow::slotSelectionChange(const QItemSelection &, const QItemSelection &)
+{
+    qDebug()<<"DONE IT";
 }

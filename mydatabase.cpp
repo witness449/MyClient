@@ -26,31 +26,47 @@ void MyDatabase::closeConnection(){
 
 void MyDatabase::createTable(){
     if(myDB.isValid()){
+
+    QSqlQuery query3(myDB);
+    QString create3 ="CREATE TABLE Rooms (Id INTEGER PRIMARY KEY, Name  VARCHAR(50) NOT NULL, Alias VARCHAR(50), IsActive BIT NOT NULL)";
+    qDebug()<<"Create table status: "<<query3.exec(create3);
+    qDebug()<<myDB.tables();
+
     QSqlQuery query(myDB);
-    QString create ="CREATE TABLE Clients (id INTEGER  PRIMARY KEY, login  VARCHAR)";
+    QString create ="CREATE TABLE Contacts (Id INTEGER IDENTITY (1,1) PRIMARY KEY, Login  VARCHAR, IdRoom INTEGER, FOREIGN KEY (IdRoom) REFERENCES Rooms (Id))";
     qDebug()<<"Create table status: "<<query.exec(create);
     qDebug()<<myDB.tables();
 
     QSqlQuery query2(myDB);
-    QString create2 ="CREATE TABLE TestMessagess (id INTEGER  PRIMARY KEY, text  VARCHAR)";
+    QString create2 ="CREATE TABLE Events (Id INTEGER PRIMARY KEY, IdRoom INTEGER NOT NULL, Content NVARCHAR NOT NULL, TimeStamp DATETIME, FOREIGN KEY (IdRoom) REFERENCES Rooms (Id))";
     qDebug()<<"Create table status: "<<query2.exec(create2);
-    qDebug()<<myDB.tables();}
+    qDebug()<<myDB.tables();
+
+    }
     else
         qDebug()<<"db is not valid";
-}
+};
+
+
 
 
 
 void MyDatabase:: dropTable(){
     if(myDB.isValid()){
     QSqlQuery query(myDB);
-    QString drop="DROP TABLE Clients";
+    QString drop="DROP TABLE Contacts";
     query.exec(drop);
-    qDebug()<<myDB.tables()<<"Should be only TestMessagess table";
+    qDebug()<<myDB.tables()<<"Should be only Events";
 
     QSqlQuery query2(myDB);
-    QString drop2="DROP TABLE TestMessagess";
+    QString drop2="DROP TABLE Events";
     query2.exec(drop2);
+    qDebug()<<myDB.tables()<<"Should be no tables";
+
+
+    QSqlQuery query3(myDB);
+    QString drop3="DROP TABLE Rooms";
+    query3.exec(drop3);
     qDebug()<<myDB.tables()<<"Should be no tables";}
     else
         qDebug()<<"db is not valid";
@@ -59,7 +75,7 @@ void MyDatabase:: dropTable(){
 void MyDatabase::printTable(){
     if (myDB.isValid()){
     QSqlQuery query(myDB);
-    QString select="SELECT * FROM Clients";
+    QString select="SELECT * FROM Contacts";
     qDebug()<<"Select query status: "<<query.exec(select);
     QSqlRecord rec =query.record();
 
@@ -68,20 +84,20 @@ void MyDatabase::printTable(){
     QString password;
 
     while (query.next()){
-        qDebug()<<"id: "<<query.value(rec.indexOf("id")).toInt()
-        <<"login: "<<query.value(rec.indexOf("login")).toString();
+        qDebug()<<"Room id: "<<query.value(rec.indexOf("IdRoom")).toInt()
+        <<"login: "<<query.value(rec.indexOf("Login")).toString();
         }
 
     QSqlQuery query2(myDB);
-    QString select2="SELECT * FROM TestMessagess";
+    QString select2="SELECT * FROM Rooms";
     qDebug()<<"Select query status: "<<query2.exec(select2);
     QSqlRecord rec2 =query2.record();
 
     QString text;
 
     while (query2.next()){
-        qDebug()<<"id: "<<query2.value(rec2.indexOf("id")).toInt()
-        <<"text: "<<query2.value(rec2.indexOf("text")).toString();
+        qDebug()<<"id: "<<query2.value(rec2.indexOf("Id")).toInt()
+        <<"text: "<<query2.value(rec2.indexOf("Name")).toString();
         }
     }
     else
@@ -165,4 +181,73 @@ void MyDatabase::insertMessage(QString message)
         if (!res) qDebug()<<query.lastError();
         //this->printTable();
     }
+}
+
+QMap<int, bool> MyDatabase::selectRooms()
+{
+    if (myDB.isValid()){
+        QSqlQuery query(myDB);
+        QString selectRooms ="select Id, IsActive from Rooms";
+        bool res=query.exec(selectRooms);
+        qDebug()<<"Insert query status: "<<res;
+        if (!res) qDebug()<<query.lastError();
+
+        QSqlRecord rec =query.record();
+
+        QMap<int, bool>result;
+
+        while (query.next()){
+            result.insert(query.value(rec.indexOf("Id")).toInt(), query.value(rec.indexOf("IsActive")).toBool() );
+            }
+
+        return result;
+
+
+    }
+}
+
+void MyDatabase::insertRoom(Room r)
+{
+    if (myDB.isValid()){
+        QSqlQuery query(myDB);
+        QString insertRoom ="INSERT INTO Rooms (Id, Name, IsActive) VALUES ("+QString::number(r.Id)+", '"+r.Name+"', "+QString::number(r.IsActive)+")";
+        bool res=query.exec(insertRoom);
+        qDebug()<<"Insert query status: "<<res;
+        if (!res) qDebug()<<query.lastError();
+    }
+}
+
+void MyDatabase::insertContact(Contact c)
+{
+    if (myDB.isValid()){
+        QSqlQuery query(myDB);
+        QString insertContact ="INSERT INTO Contacts (Login, IdRoom) VALUES ('"+c.Login+"', "+QString::number(c.IdRoom)+")";
+        bool res=query.exec(insertContact);
+        qDebug()<<"Insert query status: "<<res;
+        if (!res) qDebug()<<query.lastError();
+    }
+}
+
+QMap<int, int> MyDatabase::selectTopMessages()
+{
+    if (myDB.isValid()){
+        QSqlQuery query(myDB);
+        QString selectIds ="SELECT MAX(Id) As Id, IdRoom FROM Events GROUP BY IdRoom";
+        bool res=query.exec(selectIds);
+        qDebug()<<"Insert query status: "<<res;
+        if (!res) qDebug()<<query.lastError();
+
+        QSqlRecord rec =query.record();
+
+        QMap<int, int>result;
+
+        while (query.next()){
+            result.insert(query.value(rec.indexOf("IdRoom")).toInt(), query.value(rec.indexOf("Id")).toInt() );
+            }
+
+        return result;
+
+
+    }
+
 }

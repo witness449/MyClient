@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>372</width>
+    <width>344</width>
     <height>582</height>
    </rect>
   </property>
@@ -143,7 +143,14 @@
      </layout>
     </item>
     <item>
-     <widget class="QTextBrowser" name="chatBrowser"/>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QTextBrowser" name="chatBrowser"/>
+      </item>
+      <item>
+       <widget class="QTableView" name="tableView"/>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QLineEdit" name="messageEdit"/>
@@ -219,10 +226,17 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>372</width>
+     <width>344</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuExit">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <addaction name="actionExit_2"/>
+   </widget>
+   <addaction name="menuExit"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -233,6 +247,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionExit_2">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

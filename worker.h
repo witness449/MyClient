@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QSslSocket>
 #include "myresponse.h"
+#include "clientstate.h"
 
 //Потоковая функция объекта типа SyncThread
 //Обеспечивает цикл синхронизации текущего чата с данными на сервере при помощи long-lived GET запроса
@@ -14,7 +15,7 @@ class Worker:public QObject
 {
     Q_OBJECT
 public:
-    explicit Worker(QString authToken, QString login,  QObject *parent = 0, int last_Id=0);
+    explicit Worker(ClientState cState, QString authToken, QString login,  QObject *parent = 0, int last_Id=0);
 private slots:
     void slotSyncDisconnected();
     void readFromServer();
@@ -45,6 +46,8 @@ private:
     QString login;
 
     MyResponse* presponse;
+
+    ClientState clientState;
 };
 
 #endif // WORKER_H

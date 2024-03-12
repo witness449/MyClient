@@ -9,6 +9,9 @@
 #include "myresponse.h"
 #include "syncthread.h"
 #include "mydatabase.h"
+#include "clientstate.h"
+#include <QSqlTableModel>
+#include <QItemSelection>
 
 namespace Ui {
 class MainWindow;
@@ -45,6 +48,10 @@ private slots:
 
     void printSslErrors(const QList<QSslError> & erList);
 
+    void on_actionExit_2_triggered();
+
+    void slotSelectionChange(const QItemSelection &, const QItemSelection &);
+
 signals:
     void stopSync();
 
@@ -68,6 +75,9 @@ private:
     QMap <QString, int>RoomNames;
 
     MyResponse& presponse= *new MyResponse(); //Костыль. Либо изза кривых рук либо кривой библиотеки
+
+    ClientState clientState;
+    QSqlTableModel* rooms;
 
     static int count;
 };

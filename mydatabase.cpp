@@ -99,6 +99,19 @@ void MyDatabase::printTable(){//РАСПЕЧАТАТЬ
         qDebug()<<"id: "<<query2.value(rec2.indexOf("Id")).toInt()
         <<"text: "<<query2.value(rec2.indexOf("Name")).toString();
         }
+
+    QSqlQuery query3(myDB);
+    QString select3="SELECT * FROM Events";
+    qDebug()<<"Select query status: "<<query3.exec(select3);
+    QSqlRecord rec3 =query3.record();
+
+    while (query3.next()){
+        qDebug()<<"Id: "<<query3.value(rec3.indexOf("Id")).toInt()
+                   <<"Room id: "<<query3.value(rec3.indexOf("IdRoom")).toInt()
+        <<"login: "<<query3.value(rec3.indexOf("Content")).toString();
+        }
+
+
     }
     else
         qDebug()<<"db is not valid";
@@ -158,10 +171,9 @@ QList<QString> MyDatabase::takeMessages(){
 
 QList<QString> MyDatabase::takeMessages(QString login){
     QSqlQuery query2(myDB);
-    QString select2="SELECT * FROM Events e "
-            "INNER JOIN Rooms r ON e.IdRoom=r.Id ";
-            //"INNER JOIN Contacts c ON r.Id=c.IdRoom "
-            //"WHERE c.Login='"+login+"'";
+    QString select2="SELECT * FROM Events AS e INNER JOIN Rooms AS r ON e.IdRoom=r.Id "
+            "INNER JOIN Contacts c ON r.Id=c.IdRoom "
+            "WHERE c.Login='"+login+"' ORDER BY e.Id";
     qDebug()<<"Select query status: "<<query2.exec(select2);
     QSqlRecord rec2 =query2.record();
 

@@ -293,7 +293,16 @@ void MainWindow::incomingMessageMWSlot(Event message)
 
     clientState.SetLastEvents(pMyDB);
 
+    if(contactLogin!=""){
+    QList<QString> textList=pMyDB->takeMessages(contactLogin);
+    ui->chatBrowser->clear();
+
+    for(QString & x:textList)
+        ui->chatBrowser->append(x);}
+
     emit clientStateChanged(clientState);
+
+
 
     /*QList<QString> textList=pMyDB->takeMessages();
     ui->chatBrowser->clear();
@@ -327,8 +336,8 @@ void MainWindow::on_roomBox_activated(const QString &arg1) //arg - Логин, �
     }
     count++;
 
-    pMyDB->dropTable();
-    pMyDB->createTable();
+    //pMyDB->dropTable();
+    //pMyDB->createTable();
     int lastId=pMyDB->selectMessageId()+1;
     QString arg=QString::number(*RoomNames.find(arg1));
     QString authToken=authorizationToken.mid(0, 16);
@@ -379,13 +388,15 @@ void MainWindow::on_actionExit_2_triggered()
 
 void MainWindow::on_tableView_activated(const QModelIndex &index)
 {
-    QString login=ui->tableView->model()->data(index).toString();
+    contactLogin=ui->tableView->model()->data(index).toString();
 
-    QList<QString> textList=pMyDB->takeMessages(login);
+    QList<QString> textList=pMyDB->takeMessages(contactLogin);
     ui->chatBrowser->clear();
 
     for(QString & x:textList)
         ui->chatBrowser->append(x);
+
+    pMyDB->printTable();
 
 
 }

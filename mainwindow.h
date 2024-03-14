@@ -81,6 +81,8 @@ private:
     ClientState clientState;
     QSqlTableModel* rooms;
 
+    QString contactLogin="";
+
     static int count;
 };
 

@@ -3,6 +3,8 @@
 #include <QString>
 #include <QMap>
 #include "mydatabase.h"
+#include <QJsonObject>
+#include <QJsonArray>
 
 class ClientState
 {
@@ -22,6 +24,8 @@ public:
     void SetLastEvents(MyDatabase* pMDB);
 
     ClientState& operator=(const ClientState& cs);
+    QJsonObject ToJson();
+
 };
 
 #endif // CLIENTSTATE_H

@@ -45,3 +45,34 @@ ClientState& ClientState::operator=(const ClientState& cs)
 
 }
 
+QJsonObject ClientState::ToJson()
+{
+    QJsonObject objectRes;
+    objectRes["AccessToken"]=AccessToken;
+    QJsonArray arRooms;
+    QJsonArray arEvents;
+
+    for (auto i=Rooms.begin(); i!=Rooms.end(); i++)
+    {
+        QJsonObject object;
+        object["Id"]=i.key();
+        object["IsActive"]=i.value();
+        arRooms.append(object);
+    }
+
+    for (auto i=Events.begin(); i!=Events.end(); i++)
+    {
+        QJsonObject object;
+        object["IdRoom"]=i.key();
+        object["IdEvent"]=i.value();
+        arEvents.append(object);
+    }
+
+    objectRes["RoomsState"]=arRooms;
+    objectRes["EventsState"]=arEvents;
+
+    return objectRes;
+}
+
+
+

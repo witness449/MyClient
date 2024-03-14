@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include "clientstate.h"
+#include "event.h"
 
 //Поток в котором реализована синхронизация сообщений текущего чата и соответствующих данных на сервере
 class SyncThread:public QThread
@@ -18,14 +19,16 @@ public:
     void run();
 
 private slots:
-     void incomingMessageSlot(QString);
+     void incomingMessageEventSlot(Event);
      void workerConnectedSlot();
      void workerDisconnectedSlot();
+     void clientStateChangedSLOT(ClientState);
 
 signals:
-     void incomingMessageSync(QString);
+     void incomingMessageEventSync(Event);
      void syncConnected();
      void syncDisconnected();
+     void clientStateChangedFromSync(ClientState);
 
 private:
     //QTcpSocket* socketSync;

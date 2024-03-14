@@ -72,7 +72,7 @@ void MyDatabase:: dropTable(){
         qDebug()<<"db is not valid";
 }
 
-void MyDatabase::printTable(){
+void MyDatabase::printTable(){//РАСПЕЧАТАТЬ
     if (myDB.isValid()){
     QSqlQuery query(myDB);
     QString select="SELECT * FROM Contacts";
@@ -156,6 +156,23 @@ QList<QString> MyDatabase::takeMessages(){
     return textList;
 }
 
+QList<QString> MyDatabase::takeMessages(QString login){
+    QSqlQuery query2(myDB);
+    QString select2="SELECT * FROM Events e "
+            "INNER JOIN Rooms r ON e.IdRoom=r.Id ";
+            //"INNER JOIN Contacts c ON r.Id=c.IdRoom "
+            //"WHERE c.Login='"+login+"'";
+    qDebug()<<"Select query status: "<<query2.exec(select2);
+    QSqlRecord rec2 =query2.record();
+
+    QList<QString> textList;
+
+    while (query2.next()){
+        textList.append(query2.value(rec2.indexOf("Content")).toString());
+        }
+    return textList;
+}
+
 int MyDatabase::selectMessageId()
 {
     QSqlQuery query2(myDB);
@@ -171,11 +188,13 @@ int MyDatabase::selectMessageId()
     return lastId;
 }
 
-void MyDatabase::insertMessage(QString message)
+void MyDatabase::insertMessage(QString message, int messageId, int roomId)
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
-        QString insert ="INSERT INTO TestMessagess(text) VALUES ('"+message+"')";
+        QString IdStr=QString::number(messageId);
+        QString IdRoomStr=QString::number(roomId);
+        QString insert ="INSERT INTO Events(Id, IdRoom, Content) VALUES ("+IdStr+", "+IdRoomStr+", '"+message+"')";
         bool res=query.exec(insert);
         qDebug()<<"Insert query status: "<<res;
         if (!res) qDebug()<<query.lastError();

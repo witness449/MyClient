@@ -39,8 +39,9 @@ private slots:
     void slotDisconnected();
     void readFromServer();
 
+
     //Слоты для оргазиции синхронизации с сервером
-    void incomingMessageMWSlot(QString message);
+    void incomingMessageMWSlot(Event event);
     void syncConnected();
     void syncDisconnected();
 
@@ -50,10 +51,11 @@ private slots:
 
     void on_actionExit_2_triggered();
 
-    void slotSelectionChange(const QItemSelection &, const QItemSelection &);
+    void on_tableView_activated(const QModelIndex &index);
 
 signals:
     void stopSync();
+    void clientStateChanged(ClientState);
 
 private:
     //Переменные для организации соединения

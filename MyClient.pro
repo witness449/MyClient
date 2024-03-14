@@ -32,7 +32,8 @@ HEADERS  += mainwindow.h \
     syncthread.h \
     room.h \
     contact.h \
-    clientstate.h
+    clientstate.h \
+    event.h
 
 FORMS    += mainwindow.ui
 

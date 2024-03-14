@@ -8,6 +8,7 @@
 #include <QSslSocket>
 #include "myresponse.h"
 #include "clientstate.h"
+#include "event.h"
 
 //Потоковая функция объекта типа SyncThread
 //Обеспечивает цикл синхронизации текущего чата с данными на сервере при помощи long-lived GET запроса
@@ -24,11 +25,13 @@ private slots:
     void connectSlot();
 
     void slotSyncConnected();
+    void clientStateChangedWorkerSlot(ClientState);
+
 
 signals:
     void startSync();
     void startWorker();
-    void incomingMessage(QString);
+    void incomingMessageEvent(Event);
     void ToConnect();
     void workerConnected();
     void workerDisconnected();
@@ -49,5 +52,7 @@ private:
 
     ClientState clientState;
 };
+
+
 
 #endif // WORKER_H

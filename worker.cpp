@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <thread>
 #include <QFile>
+#include "event.h"
 
 QMap<int, QString> TokenParse(QString& accessToken, QString &login)
 {
@@ -84,6 +85,12 @@ void Worker::slotSyncConnected(){
     emit startSync();
 }
 
+void Worker::clientStateChangedWorkerSlot(ClientState cs)
+{
+    clientState=cs;
+    emit startSync();
+}
+
 void Worker:: startSyncSlot()
 {
     presponse->clear();
@@ -93,11 +100,17 @@ void Worker:: startSyncSlot()
     syncRequest.setPath("/sync");
     QByteArray last_Id=QString::number(lastId).toUtf8();
     syncRequest.appendHeader("Id", last_Id);
-    QByteArray authToken=authorizationToken.toUtf8();
+    //QByteArray authToken=authorizationToken.toUtf8();
+    QByteArray authToken=clientState.GetToken().toUtf8();
     syncRequest.appendHeader("Auth_token", authToken);
     syncRequest.appendHeader("Login", login.toUtf8());
 
-    QByteArray ba=0;
+    syncRequest.appendHeader("Content-Type", "application/json");
+    QJsonObject jsonObject=clientState.ToJson();
+    QJsonDocument document=QJsonDocument(jsonObject);
+    QByteArray ba = document.toJson();
+
+    qDebug()<<ba;
 
     syncRequest.write(ba, true, socketSync);
     lastId++;
@@ -123,20 +136,24 @@ void Worker::readFromServer()
         return;
     }
 
+    Event event;
+
     QByteArray bodyData(presponse->getBody());
     QJsonDocument doc=QJsonDocument::fromJson(bodyData);
     buffer=doc.object();
     bytebuffer=bodyData;
-    QString message=buffer["one"].toString()+"1";
-    if (message!="1"){
-        emit incomingMessage(message);
-    }
 
+    event.Content=buffer["Content"].toString();
+    event.Id=buffer["Id"].toInt();
+    event.IdRoom=buffer["IdRoom"].toInt();
+
+    if (event.Content!=""){
+    emit incomingMessageEvent(event);}
 
     if(presponse->getStatus()!=MyResponse::waitForBody){
         std::chrono::milliseconds ms(30);
         std::this_thread::sleep_for(ms);
-        emit startSync();
+        //emit startSync();
     }
   }
 

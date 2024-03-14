@@ -28,7 +28,8 @@ public:
     int selectMessageId(); //Получение идентификатора последнего сообщения в текущем чате
      //void insertTestMessages();
     QList<QString> takeMessages();//Получить сообщения текущего чата
-    void insertMessage(QString); //Внести сообщение в текущий чат
+    QList<QString> takeMessages(QString);
+    void insertMessage(QString, int, int); //Внести сообщение в текущий чат
 
     QMap<int, bool> selectRooms();
     QMap<int, int> selectTopMessages();

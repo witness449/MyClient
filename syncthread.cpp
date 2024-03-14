@@ -3,6 +3,7 @@
 #include "myrequest.h"
 #include "worker.h"
 
+
 SyncThread::SyncThread(ClientState &cState, QString authToken,  QString log, QObject* parent, int last_Id):QThread(parent)
 {
     lastId=last_Id;
@@ -14,16 +15,17 @@ SyncThread::SyncThread(ClientState &cState, QString authToken,  QString log, QOb
 void SyncThread::run()
 {
     Worker*pw=new Worker(clientState, authorizationToken, login, this, lastId);
-    QObject::connect(pw, SIGNAL(incomingMessage(QString)), this, SLOT(incomingMessageSlot(QString)));
+    QObject::connect(pw, SIGNAL(incomingMessageEvent(Event)), this, SLOT(incomingMessageEventSlot(Event)));
     QObject::connect(pw, SIGNAL(workerConnected()), this, SLOT (workerConnectedSlot()));
     QObject::connect(pw, SIGNAL(workerDisonnected()), this, SLOT (workerDisconnectedSlot()));
+    QObject::connect(this, SIGNAL (clientStateChangedFromSync(ClientState)), pw, SLOT (clientStateChangedWorkerSlot(ClientState)));
     exec();
 }
 
-void SyncThread::incomingMessageSlot(QString message)
+void SyncThread::incomingMessageEventSlot(Event event)
 {
-    QString messageStr=message;
-    emit incomingMessageSync(messageStr);
+    Event ev=event;
+    emit incomingMessageEventSync(ev);
 }
 
 void SyncThread::workerConnectedSlot()
@@ -34,5 +36,11 @@ void SyncThread::workerConnectedSlot()
 void SyncThread::workerDisconnectedSlot()
 {
     emit syncDisconnected();
+}
+
+void SyncThread::clientStateChangedSLOT(ClientState cs)
+{
+    clientState=cs;
+    emit clientStateChangedFromSync(clientState);
 }
 

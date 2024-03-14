@@ -7,6 +7,10 @@
 #include <QFile>
 #include <QJsonArray>
 #include "room.h"
+#include "event.h"
+
+Q_DECLARE_METATYPE(Event);
+Q_DECLARE_METATYPE(ClientState);
 
 int MainWindow::count=0;
 
@@ -14,6 +18,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
+    qRegisterMetaType<Event>();
+    qRegisterMetaType<ClientState>();
+
+
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
 
@@ -231,6 +240,7 @@ void MainWindow::readFromServer()
 
             clientState.SetToken(authorizationToken);
             clientState.SetRooms(pMyDB);
+            clientState.SetLastEvents(pMyDB);
             rooms->select();
 
             authorizationFlag=true;
@@ -277,14 +287,19 @@ void MainWindow::on_sendButton_clicked()
     sendRequest.write(sendData, true, &socketPut);
 }
 
-void MainWindow::incomingMessageMWSlot(QString message)
+void MainWindow::incomingMessageMWSlot(Event message)
 {
-    pMyDB->insertMessage(message);
-    QList<QString> textList=pMyDB->takeMessages();
+    pMyDB->insertMessage(message.Content, message.Id, message.IdRoom);
+
+    clientState.SetLastEvents(pMyDB);
+
+    emit clientStateChanged(clientState);
+
+    /*QList<QString> textList=pMyDB->takeMessages();
     ui->chatBrowser->clear();
 
     for(QString & x:textList)
-        ui->chatBrowser->append(x);
+        ui->chatBrowser->append(x);*/
 }
 
 void MainWindow::syncConnected()
@@ -325,7 +340,8 @@ void MainWindow::on_roomBox_activated(const QString &arg1) //arg - Логин, �
     thread->start();
     QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
     QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
-    QObject::connect(thread, SIGNAL(incomingMessageSync(QString)), this, SLOT(incomingMessageMWSlot(QString)));
+    QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
+    QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
     QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot()));
 }
 
@@ -360,7 +376,16 @@ void MainWindow::on_actionExit_2_triggered()
     this->close();
 }
 
-void MainWindow::slotSelectionChange(const QItemSelection &, const QItemSelection &)
+
+void MainWindow::on_tableView_activated(const QModelIndex &index)
 {
-    qDebug()<<"DONE IT";
+    QString login=ui->tableView->model()->data(index).toString();
+
+    QList<QString> textList=pMyDB->takeMessages(login);
+    ui->chatBrowser->clear();
+
+    for(QString & x:textList)
+        ui->chatBrowser->append(x);
+
+
 }

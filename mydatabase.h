@@ -18,6 +18,7 @@ private:
     QSqlDatabase myDB;
 public:
     MyDatabase();
+    ~MyDatabase();
     void createConnection(); //Установить соединение с базой данных
     void closeConnection(); //Закрыть соединение с базой данных
     void createTable(); //Создать таблицы
@@ -35,6 +36,7 @@ public:
     QMap<int, int> selectTopMessages();
     void insertRoom(Room r);
     void insertContact(Contact c);
+    int selectRoomId(QString roomName);
 
     QSqlDatabase getDBPointer()
     {

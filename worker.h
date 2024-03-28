@@ -36,6 +36,9 @@ signals:
     void workerConnected();
     void workerDisconnected();
 
+    void incomingRoom(Room, QString);
+
+
 private:
     QSslSocket* socketSync;
     QJsonObject buffer;

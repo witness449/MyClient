@@ -3,6 +3,13 @@
 
 MyDatabase::MyDatabase()
 {
+    this->createConnection();
+    this->createTable();
+}
+
+MyDatabase::~MyDatabase()
+{
+    this->dropTable();
 }
 
 void MyDatabase::createConnection(){
@@ -280,5 +287,21 @@ QMap<int, int> MyDatabase::selectTopMessages()
 
 
     }
+
+}
+
+int MyDatabase::selectRoomId(QString roomName)
+{
+    int result;
+    QSqlQuery query(myDB);
+    QString selectRooms ="select Id from Rooms where Name='"+roomName+"'";
+    bool res=query.exec(selectRooms);
+    QSqlRecord rec =query.record();
+
+    while (query.next()){
+        result = query.value(rec.indexOf("Id")).toInt();
+        }
+
+    return result;
 
 }

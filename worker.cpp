@@ -93,6 +93,8 @@ void Worker::clientStateChangedWorkerSlot(ClientState cs)
 
 void Worker:: startSyncSlot()
 {
+
+
     presponse->clear();
     MyRequest syncRequest;
     syncRequest.setMethod("PUT");
@@ -136,19 +138,38 @@ void Worker::readFromServer()
         return;
     }
 
-    Event event;
 
     QByteArray bodyData(presponse->getBody());
     QJsonDocument doc=QJsonDocument::fromJson(bodyData);
     buffer=doc.object();
     bytebuffer=bodyData;
 
+    if (buffer["type"].toInt()==0)
+    {
+    Event event;
     event.Content=buffer["Content"].toString();
     event.Id=buffer["Id"].toInt();
     event.IdRoom=buffer["IdRoom"].toInt();
+    qDebug()<<QString::number(buffer["NewId"].toInt());
 
     if (event.Content!=""){
     emit incomingMessageEvent(event);}
+    }
+
+    else if (buffer["type"]==1)
+    {
+        Room r;
+        QString token;
+        r.Id=buffer["idRoom"].toInt();
+        r.IsActive=true;
+        r.Name=buffer["RoomName"].toString();
+        authorizationToken=buffer["Authorization_token"].toString();
+
+        token=authorizationToken;
+
+        emit incomingRoom(r, token);
+
+     }
 
     if(presponse->getStatus()!=MyResponse::waitForBody){
         std::chrono::milliseconds ms(30);

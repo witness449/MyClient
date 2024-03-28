@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     myresponse.cpp \
     worker.cpp \
     syncthread.cpp \
-    clientstate.cpp
+    clientstate.cpp \
+    clientlogic.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
@@ -33,7 +34,8 @@ HEADERS  += mainwindow.h \
     room.h \
     contact.h \
     clientstate.h \
-    event.h
+    event.h \
+    clientlogic.h
 
 FORMS    += mainwindow.ui
 

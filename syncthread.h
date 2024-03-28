@@ -23,12 +23,18 @@ private slots:
      void workerConnectedSlot();
      void workerDisconnectedSlot();
      void clientStateChangedSLOT(ClientState);
+     void incomingRoomSlot(Room, QString);
+
 
 signals:
      void incomingMessageEventSync(Event);
      void syncConnected();
      void syncDisconnected();
      void clientStateChangedFromSync(ClientState);
+
+
+     void incomingRoomSync(Room, QString);
+
 
 private:
     //QTcpSocket* socketSync;

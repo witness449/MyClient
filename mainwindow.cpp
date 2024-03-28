@@ -11,16 +11,19 @@
 
 Q_DECLARE_METATYPE(Event);
 Q_DECLARE_METATYPE(ClientState);
+Q_DECLARE_METATYPE(Room);
 
 int MainWindow::count=0;
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(MyDatabase* pMDB, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
 
     qRegisterMetaType<Event>();
     qRegisterMetaType<ClientState>();
+    qRegisterMetaType<Room>();
+
 
 
     QFile file ("clientConfig.txt");
@@ -40,9 +43,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->connecSyncIndic->setPixmap(QPixmap("noconnect.png"));
     ui->statusLabel->setText("");
 
-    pMyDB=new MyDatabase();
-    pMyDB->createConnection();
-    pMyDB->createTable();
+    pMyDB=pMDB;
+    //pMyDB->createConnection();
+    //pMyDB->createTable();
     //pMyDB->dbInsert("test user");
     //pMyDB->insertTestMessages();
     pMyDB->printTable();
@@ -76,19 +79,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_connButton_clicked()
 {
-    if ((socketPut.state()!=QAbstractSocket::ConnectedState)||(socketPut.state()!=QAbstractSocket::ConnectingState)){ //НЕ ПРОВЕРЯЕТ!!!
-        /*QFile certfile("D:\\HttpQt\\MyClient\\MyClient\\MyClient\\ca.crt");
-        certfile.open(QIODevice::ReadOnly);
-        QSslCertificate cert(&certfile,QSsl::Pem);
-        socketPut.setLocalCertificate(cert);
-        certfile.close();*/
-        socketPut.connectToHostEncrypted(adr, port);
-        QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), &socketPut, static_cast<void (QSslSocket::*)()>(&QSslSocket::ignoreSslErrors));
-        //QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), this, &MainWindow::printSslErrors);
-        connect(&socketPut,SIGNAL(connected()),this,SLOT(slotConnected()));
-        connect(&socketPut,SIGNAL(disconnected()),this,SLOT(slotDisconnected()));
-        connect(&socketPut,SIGNAL(readyRead()),this,SLOT(readFromServer()));
-        }
+    emit ToConnect();
+
    }
 
 void MainWindow::on_disconButton_clicked()
@@ -108,27 +100,17 @@ void MainWindow::slotDisconnected(){
 
 void MainWindow::on_regButton_clicked()
 {
-    MyRequest regRequest;
-    regRequest.setMethod("POST");
-    regRequest.setVersion("HTTP/1.1");
-    regRequest.setPath("/reg");
-
     login=ui->loginEdit->text();
     password=ui->passwordEdit->text();
     qDebug()<<"Login: "<<login<<" Password: "<<password;
 
-    regRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject;
-    jsonObject["Login"] = login;
-    jsonObject["Password"] = password;
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray regData = document.toJson();
-
-    regRequest.write(regData, true, &socketPut);
+    emit ToRegister(login, password);
 }
 
 void MainWindow::on_authButton_clicked()
 {
+    emit ToAuthentificate(ui->loginEdit->text(), ui->passwordEdit->text());
+
     authorizationFlag=false;
     this->Rooms.clear();
     ui->roomBox->clear();
@@ -249,6 +231,39 @@ void MainWindow::readFromServer()
         }
         if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationFlag==true)){
             ui->statusLabel->setText("Authorized");
+
+            if (count!=0)
+            {
+                thread->exit();
+            }
+            count++;
+
+            //pMyDB->dropTable();
+            //pMyDB->createTable();
+            int lastId=pMyDB->selectMessageId()+1;
+            QString arg="arg";
+            QString authToken=authorizationToken.mid(0, 16);
+            authToken+="_"+arg;
+
+            thread = new SyncThread(clientState, authToken, login, this, lastId);
+            connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+            thread->start();
+            QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
+            QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
+            QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
+
+            QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
+
+
+
+            QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
+            QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
+
+
+
+
+
         }
         else{
             ui->statusLabel->setText("Unauthorized");
@@ -265,26 +280,11 @@ void MainWindow::readFromServer()
 }
 void MainWindow::on_sendButton_clicked()
 {
-    MyRequest sendRequest;
-    sendRequest.setMethod("POST");
-    sendRequest.setVersion("HTTP/1.1");
-    sendRequest.setPath("/send");
 
-    QString text=ui->messageEdit->text();
+ QString text=ui->messageEdit->text();
 
-    sendRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject;
-    jsonObject["message"] = text;
 
-    QString room=ui->roomBox->currentText();
-    jsonObject["room_id"] = QString::number(*RoomNames.find(room));
-
-    jsonObject["login"]=login;
-
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray sendData = document.toJson();
-
-    sendRequest.write(sendData, true, &socketPut);
+    emit ToSend(contactLogin, text);
 }
 
 void MainWindow::incomingMessageMWSlot(Event message)
@@ -350,8 +350,13 @@ void MainWindow::on_roomBox_activated(const QString &arg1) //arg - Логин, �
     QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
     QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
     QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
+
+    QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
+
+
+
     QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
-    QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot()));
+    QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
 }
 
 void MainWindow::on_find_clicked()
@@ -381,7 +386,7 @@ void MainWindow::printSslErrors(const QList<QSslError> & erList)
 
 void MainWindow::on_actionExit_2_triggered()
 {
-    pMyDB->dropTable();
+    //pMyDB->dropTable();
     this->close();
 }
 
@@ -400,3 +405,31 @@ void MainWindow::on_tableView_activated(const QModelIndex &index)
 
 
 }
+
+void MainWindow::incomingRoomMWSlot(Room r, QString s)
+{
+    pMyDB->insertRoom(r);
+    Contact c;
+    c.Login=r.Name;
+    c.IdRoom=r.Id;
+    pMyDB->insertContact(c);
+    authorizationToken=s;
+
+    clientState.SetToken(authorizationToken);
+    clientState.SetRooms(pMyDB);
+    clientState.SetLastEvents(pMyDB);
+    rooms->select();
+
+
+    emit clientStateChanged(clientState);
+
+
+
+
+}
+
+void MainWindow::AuthPassSlot()
+{
+    rooms->select();
+}
+

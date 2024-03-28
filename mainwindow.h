@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(MyDatabase* pMDB, QWidget *parent = 0);
     ~MainWindow();
 
 private slots:
@@ -53,9 +53,17 @@ private slots:
 
     void on_tableView_activated(const QModelIndex &index);
 
+
+    void incomingRoomMWSlot(Room, QString);
+    void AuthPassSlot();
+
 signals:
     void stopSync();
     void clientStateChanged(ClientState);
+    void ToConnect();
+    void ToRegister(QString, QString);
+    void ToAuthentificate(QString, QString);
+    void ToSend(QString, QString);
 
 private:
     //Переменные для организации соединения

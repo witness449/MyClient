@@ -8,6 +8,9 @@
 #include <QSslSocket>
 #include "myresponse.h"
 #include "syncthread.h"
+#include "account.h"
+#include "registrator.h"
+#include "authorizer.h"
 
 class ClientLogic : public QObject
 {
@@ -21,22 +24,21 @@ class ClientLogic : public QObject
 
     MyResponse& presponse= *new MyResponse();
 
-    QString login;
-    QString password;
-    QString authorizationToken;
+    Account account;
 
     bool authorizationgFlag=false;
 
     SyncThread* thread;
     static int count;
-
+    Registrator registrator;
+    Authorizer authorizer;
 
     Q_OBJECT
 public:
     explicit ClientLogic(MyDatabase* pD, QObject *parent = 0);
 
 signals:
-    void AuthPass();
+    void refreshRooms();
     void clientStateChanged(ClientState);
 
 public slots:
@@ -50,7 +52,9 @@ public slots:
     void incomingMessageMWSlot(Event event);
     void incomingRoomMWSlot(Room, QString);
     void ToSendSlot(QString, QString);
-
+    void ToFindSLOT(QString);
+    //void printSslErrors(const QList<QSslError> & erList);
+    void StartSynchronization();
 
 };
 

@@ -32,29 +32,22 @@ private slots:
     void on_regButton_clicked(); //Действи по кнопке "Регистрация"
     void on_authButton_clicked(); //Действия по кнопке "Авторизация"
     void on_sendButton_clicked(); //Действи япо кнопке "Отправка сообщения"
-    void on_roomBox_activated(const QString &arg1); //Действия при активации выбора чата
+    //void on_roomBox_activated(const QString &arg1); //Действия при активации выбора чата
 
     //Слоты для оргазиции подключения и отправки сообщений
     void slotConnected();
     void slotDisconnected();
-    void readFromServer();
-
 
     //Слоты для оргазиции синхронизации с сервером
-    void incomingMessageMWSlot(Event event);
+    //void incomingMessageMWSlot(Event event);
     void syncConnected();
     void syncDisconnected();
+    //void readFromServer();
 
     void on_find_clicked();
-
-    void printSslErrors(const QList<QSslError> & erList);
-
     void on_actionExit_2_triggered();
 
     void on_tableView_activated(const QModelIndex &index);
-
-
-    void incomingRoomMWSlot(Room, QString);
     void AuthPassSlot();
 
 signals:
@@ -64,34 +57,17 @@ signals:
     void ToRegister(QString, QString);
     void ToAuthentificate(QString, QString);
     void ToSend(QString, QString);
+    void ToFind(QString);
 
 private:
-    //Переменные для организации соединения
-    QString adr;
-    qint16 port;
-    QHostAddress address;
 
     Ui::MainWindow *ui;
-    QSslSocket socketPut; //Сокет для соединения с сервером и отправки сообщений
+
     MyDatabase* pMyDB; //Указатель набазу данных
-    SyncThread* thread; //Поток для организации синхронизации
 
-    QString login; //Логин пользователя
-    QString password; //Пароль пользователя
-    QString authorizationToken; //Токен авторизации
-    int authorizationFlag=false;
-
-    QList<QString> Rooms; //Список чатов
-    QMap <QString, int>RoomNames;
-
-    MyResponse& presponse= *new MyResponse(); //Костыль. Либо изза кривых рук либо кривой библиотеки
-
-    ClientState clientState;
     QSqlTableModel* rooms;
+    QString contactLogin;
 
-    QString contactLogin="";
-
-    static int count;
 };
 
 #endif // MAINWINDOW_H

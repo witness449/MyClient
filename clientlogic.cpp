@@ -2,29 +2,26 @@
 #include <QFile>
 #include "myrequest.h"
 #include <QJsonDocument>
+#include "registrator.h"
 
 int ClientLogic::count=0;
 
-ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
-    QObject(parent)
+ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyDB (pD),
+    registrator(account, &socketPut),
+    authorizer(account, &socketPut, pMyDB)
 {
-
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
-
     QTextStream in(&file);
-
     adr=in.readLine();
     port=in.readLine().toInt();
-
     file.close();
-
-    pMyDB=pD;
 
     clientState.SetLastEvents(pMyDB);
     clientState.SetRooms(pMyDB);
-
     address.setAddress(adr);
+
+
 
 }
 
@@ -76,24 +73,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
 
      if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
      {
-         QByteArray bodyData(presponse.getBody());
-         QJsonDocument doc=QJsonDocument::fromJson(bodyData);
-         QJsonObject buffer=doc.object();
-
-         MyRequest authRequest;
-         authRequest.setMethod("POST");
-         authRequest.setVersion("HTTP/1.1");
-         authRequest.setPath("/auth");
-
-         authRequest.appendHeader("Content-Type", "application/json");
-         QJsonObject jsonObject;
-         jsonObject["identifier"] = login;
-         jsonObject["password"] = password;
-         jsonObject["session"]=buffer["session"];
-         QJsonDocument document=QJsonDocument(jsonObject);
-         QByteArray authData = document.toJson();
-
-         authRequest.write(authData, true, &socketPut);
+         authorizer.readResponse(presponse);
      }
 
 
@@ -101,35 +81,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
      {
          if (!authorizationgFlag)
          {
-             QByteArray bodyData(presponse.getBody());
-             QJsonDocument doc=QJsonDocument::fromJson(bodyData);
-             QJsonObject buffer=doc.object();
-
-             authorizationToken=buffer["Authorization_token"].toString();
-             QJsonArray RoomsArr= buffer["Rooms"].toArray();
-
-             int i=1;
-             //while(buffer[QString::number(i)+"Room"].toString()!=""){
-                 //Rooms.append(buffer[QString::number(i)+"Room"].toString()); //Логин RoomsArr
-                 //RoomNames.insert(buffer[QString::number(i)+"Room"].toString().split(" ")[1], buffer[QString::number(i)+"Room"].toString().split(" ")[0].toInt()); //Логиен RoomID
-                 //i++;
-             for (auto el:RoomsArr)
-             {
-                 //Rooms.append(el.toObject()["id"].toString());
-                 //RoomNames.insert(el.toObject()["login"].toString(), el.toObject()["id"].toString().toInt());
-                 Room room;
-                 room.Id=el.toObject()["id"].toString().toInt();
-                 room.Name=el.toObject()["login"].toString();
-                 room.IsActive=1;
-
-                 Contact c;
-                 c.Login=el.toObject()["login"].toString();
-                 c.IdRoom=el.toObject()["id"].toString().toInt();
-
-
-                 pMyDB->insertRoom(room);
-                 pMyDB->insertContact(c);
-                 pMyDB->printTable();
+             authorizer.readResponse(presponse);
 
                  //ui->roomBox->addItem(el.toObject()["login"].toString());
              }
@@ -139,47 +91,25 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
                  ui->roomBox->addItem(RoomNames.key(el));
              }*/
 
-             clientState.SetToken(authorizationToken);
+             clientState.SetToken(account.accessToken);
              clientState.SetRooms(pMyDB);
              clientState.SetLastEvents(pMyDB);
 
-             emit AuthPass();
+             emit refreshRooms();
 
              authorizationgFlag=true;
-             if (authorizationToken=="")
+             if (account.accessToken=="")
                  authorizationgFlag=false;
-         }
+
 
          if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationgFlag==true)){
+
+
+
              //ui->statusLabel->setText("Authorized");
 
-             if (count!=0)
-             {
-                 thread->exit();
-             }
-             count++;
 
-             //pMyDB->dropTable();
-             //pMyDB->createTable();
-             int lastId=pMyDB->selectMessageId()+1;
-             QString arg="arg";
-             QString authToken=authorizationToken.mid(0, 16);
-             authToken+="_"+arg;
-
-             thread = new SyncThread(clientState, authToken, login, this, lastId);
-             connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-
-             thread->start();
-             QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
-             QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
-
-
-             QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
-             QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
-             QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
-
-
-             QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
+               StartSynchronization();
 
 
 
@@ -191,7 +121,9 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
             // ui->statusLabel->setText("Unauthorized");
          }
      }
+
      else if(QString::localeAwareCompare(reqType, "Registration")==0){
+         registrator.readResponse(presponse);
          /*if (QString::localeAwareCompare(presponse.returnStatus(), "200")==0){
              ui->statusLabel->setText("Registered");
          }
@@ -203,38 +135,18 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
 
  void ClientLogic:: ToRegisterSlot(QString log, QString pass)
  {
-     login=log;
-     password=pass;
+     account.login=log;
+     account.password=pass;
+     registrator.sendRequest();
 
-     MyRequest regRequest;
-     regRequest.setMethod("POST");
-     regRequest.setVersion("HTTP/1.1");
-     regRequest.setPath("/reg");
-
-     regRequest.appendHeader("Content-Type", "application/json");
-     QJsonObject jsonObject;
-     jsonObject["Login"] = login;
-     jsonObject["Password"] = password;
-     QJsonDocument document=QJsonDocument(jsonObject);
-     QByteArray regData = document.toJson();
-
-     regRequest.write(regData, true, &socketPut);
  }
 
  void ClientLogic::ToAuthentificateSlot(QString log, QString pass)
  {
-     login=log;
-     password=pass;
-
-     MyRequest authRequest;
-     authRequest.setMethod("GET");
-     authRequest.setVersion("HTTP/1.1");
-     authRequest.setPath("/auth");
-
-     authRequest.write(QByteArray(), true, &socketPut);
-
-
- }
+     account.login=log;
+     account.password=pass;
+     authorizer.sendRequest();
+}
 
 
  void ClientLogic::incomingMessageMWSlot(Event message)
@@ -269,13 +181,13 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
      c.Login=r.Name;
      c.IdRoom=r.Id;
      pMyDB->insertContact(c);
-     authorizationToken=s;
+     account.accessToken=s;
 
-     clientState.SetToken(authorizationToken);
+     clientState.SetToken(account.accessToken);
      clientState.SetRooms(pMyDB);
      clientState.SetLastEvents(pMyDB);
 
-     emit AuthPass();
+     emit refreshRooms();
 
 
      emit clientStateChanged(clientState);
@@ -304,13 +216,64 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :
      jsonObject["room_id"]=QString::number(roomId);
      qDebug()<<QString::number(roomId);
 
-     jsonObject["login"]=login;
+     jsonObject["login"]=account.login;
 
      QJsonDocument document=QJsonDocument(jsonObject);
      QByteArray sendData = document.toJson();
 
      sendRequest.write(sendData, true, &socketPut);
  }
+
+ void ClientLogic::ToFindSLOT(QString contactLogin)
+ {
+     MyRequest sendRequest;
+     sendRequest.setMethod("POST");
+     sendRequest.setVersion("HTTP/1.1");
+     sendRequest.setPath("/create_room");
+
+     QJsonObject jsonObject;
+     jsonObject["creatorLogin"] = account.login;
+     jsonObject["clientLogin"]=contactLogin;
+
+     QJsonDocument document=QJsonDocument(jsonObject);
+     QByteArray sendData = document.toJson();
+
+     sendRequest.write(sendData, true, &socketPut);
+ }
+
+ void ClientLogic::StartSynchronization()
+ {
+     if (count!=0)
+     {
+         thread->exit();
+     }
+     count++;
+
+     //pMyDB->dropTable();
+     //pMyDB->createTable();
+     //int lastId=pMyDB->selectMessageId()+1;
+     int lastId=0;
+     QString arg="arg";
+     QString authToken=account.accessToken.mid(0, 16);
+     authToken+="_"+arg;
+
+     thread = new SyncThread(clientState, account.accessToken, account.login, this, lastId);
+     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+     thread->start();
+     QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
+     QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
+
+
+     QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
+     QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
+     QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
+
+
+     QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
+ }
+
+
 
 
 

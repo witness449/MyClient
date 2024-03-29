@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     worker.cpp \
     syncthread.cpp \
     clientstate.cpp \
-    clientlogic.cpp
+    clientlogic.cpp \
+    registrator.cpp \
+    authorizer.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
@@ -35,7 +37,11 @@ HEADERS  += mainwindow.h \
     contact.h \
     clientstate.h \
     event.h \
-    clientlogic.h
+    clientlogic.h \
+    commonprotocol.h \
+    account.h \
+    registrator.h \
+    authorizer.h
 
 FORMS    += mainwindow.ui
 

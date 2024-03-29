@@ -3,9 +3,16 @@
 #include "mydatabase.h"
 #include "clientlogic.h"
 
+Q_DECLARE_METATYPE(Event)
+Q_DECLARE_METATYPE(ClientState)
+Q_DECLARE_METATYPE(Room)
 
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<Event>();
+    qRegisterMetaType<ClientState>();
+    qRegisterMetaType<Room>();
+
     QApplication a(argc, argv);
     MyDatabase mDB;
     ClientLogic cl(&mDB);
@@ -13,8 +20,9 @@ int main(int argc, char *argv[])
     QObject::connect(&w, SIGNAL (ToConnect()), &cl, SLOT(ConnectSlot()));
     QObject::connect(&w, SIGNAL (ToRegister(QString, QString)), &cl, SLOT(ToRegisterSlot(QString, QString)));
     QObject::connect(&w, SIGNAL (ToAuthentificate(QString, QString)), &cl, SLOT (ToAuthentificateSlot(QString, QString)));
-    QObject::connect(&cl, SIGNAL (AuthPass()), &w, SLOT (AuthPassSlot()));
+    QObject::connect(&cl, SIGNAL (refreshRooms()), &w, SLOT (AuthPassSlot()));
     QObject::connect(&w, SIGNAL(ToSend(QString, QString)), &cl, SLOT(ToSendSlot(QString, QString)));
+    QObject::connect(&w, SIGNAL(ToFind(QString)), &cl, SLOT(ToFindSLOT(QString)));
 
     w.show();
 

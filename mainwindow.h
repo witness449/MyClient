@@ -50,6 +50,10 @@ private slots:
     void on_tableView_activated(const QModelIndex &index);
     void AuthPassSlot();
 
+    void on_banButton_clicked();
+
+    void on_unButton_clicked();
+
 signals:
     void stopSync();
     void clientStateChanged(ClientState);
@@ -58,6 +62,8 @@ signals:
     void ToAuthentificate(QString, QString);
     void ToSend(QString, QString);
     void ToFind(QString);
+    void ToBan(QString);
+    void ToUnBan(QString);
 
 private:
 

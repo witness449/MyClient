@@ -24,6 +24,7 @@ private slots:
      void workerDisconnectedSlot();
      void clientStateChangedSLOT(ClientState);
      void incomingRoomSlot(Room, QString);
+     void outcomingRoomSlot(Room, QString);
 
 
 signals:
@@ -34,6 +35,7 @@ signals:
 
 
      void incomingRoomSync(Room, QString);
+     void outcomingRoomSync(Room, QString);
 
 
 private:

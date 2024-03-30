@@ -37,14 +37,15 @@ signals:
     void workerDisconnected();
 
     void incomingRoom(Room, QString);
+    void outcomingRoom(Room, QString);
 
 
 private:
     QSslSocket* socketSync;
     QJsonObject buffer;
     QByteArray bytebuffer;
-    int lastId;
-    QString authorizationToken;
+    //int lastId;
+    //QString authorizationToken;
 
     qint16 port;
     QString adr;

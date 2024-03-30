@@ -24,9 +24,9 @@ MainWindow::MainWindow(MyDatabase* pMDB, QWidget *parent) :
     pMyDB=pMDB;
     pMyDB->printTable();
 
-    QList<QString> textList=pMyDB->takeMessages();
-    for(QString & x:textList)
-    ui->chatBrowser->append(x);
+    //QList<QString> textList=pMyDB->takeMessages();
+    /*for(QString & x:textList)
+    ui->chatBrowser->append(x);*/
 
     rooms=new QSqlTableModel(this, pMyDB->getDBPointer());
     rooms->setTable("Rooms");
@@ -44,7 +44,7 @@ MainWindow::MainWindow(MyDatabase* pMDB, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    pMyDB->dropTable();
+    pMyDB->dropTable();//???
     delete ui;
 }
 
@@ -73,8 +73,6 @@ void MainWindow::on_regButton_clicked()
 {
     QString login=ui->loginEdit->text();
     QString password=ui->passwordEdit->text();
-    qDebug()<<"Login: "<<login<<" Password: "<<password;
-
     emit ToRegister(login, password);
 }
 
@@ -144,6 +142,11 @@ void MainWindow::AuthPassSlot()
     rooms->select();
 }
 
+void MainWindow::on_banButton_clicked()
+{
+    emit ToBan(ui->banEdit->text());
+}
+
 /*void MainWindow::incomingRoomMWSlot(Room r, QString s)
 {
     pMyDB->insertRoom(r);
@@ -189,3 +192,10 @@ void MainWindow::AuthPassSlot()
         ui->chatBrowser->append(x);
 }*/
 
+
+
+
+void MainWindow::on_unButton_clicked()
+{
+    emit ToUnBan(ui->banEdit->text());
+}

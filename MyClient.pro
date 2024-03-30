@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     clientstate.cpp \
     clientlogic.cpp \
     registrator.cpp \
-    authorizer.cpp
+    authorizer.cpp \
+    sender.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
@@ -41,7 +42,8 @@ HEADERS  += mainwindow.h \
     commonprotocol.h \
     account.h \
     registrator.h \
-    authorizer.h
+    authorizer.h \
+    sender.h
 
 FORMS    += mainwindow.ui
 

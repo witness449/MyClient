@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
     QObject::connect(&cl, SIGNAL (refreshRooms()), &w, SLOT (AuthPassSlot()));
     QObject::connect(&w, SIGNAL(ToSend(QString, QString)), &cl, SLOT(ToSendSlot(QString, QString)));
     QObject::connect(&w, SIGNAL(ToFind(QString)), &cl, SLOT(ToFindSLOT(QString)));
+    QObject::connect(&w, SIGNAL(ToBan(QString)), &cl, SLOT(ToBanSLOT(QString)));
+    QObject::connect(&w, SIGNAL(ToUnBan(QString)), &cl, SLOT(ToUnBanSLOT(QString)));
 
     w.show();
 

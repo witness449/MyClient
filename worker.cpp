@@ -33,13 +33,11 @@ Worker::Worker(ClientState cState,  QString authToken, QString log, QObject *par
 
     adress.setAddress(adr);
 
-    authorizationToken=authToken;
-    lastId=last_Id;
+    //authorizationToken=authToken;
+    //lastId=last_Id;
     login=log;
     clientState=cState;
-
     QString token=cState.GetToken();
-
     QMap<int, QString> rooms=TokenParse(token, login);
 
     connect(this, SIGNAL(startWorker()), this, SLOT(startWorkerSlot()));
@@ -100,8 +98,8 @@ void Worker:: startSyncSlot()
     syncRequest.setMethod("PUT");
     syncRequest.setVersion("HTTP/1.1");
     syncRequest.setPath("/sync");
-    QByteArray last_Id=QString::number(lastId).toUtf8();
-    syncRequest.appendHeader("Id", last_Id);
+    //QByteArray last_Id=QString::number(lastId).toUtf8();
+    //syncRequest.appendHeader("Id", last_Id);
     //QByteArray authToken=authorizationToken.toUtf8();
     QByteArray authToken=clientState.GetToken().toUtf8();
     syncRequest.appendHeader("Auth_token", authToken);
@@ -115,7 +113,7 @@ void Worker:: startSyncSlot()
     qDebug()<<ba;
 
     syncRequest.write(ba, true, socketSync);
-    lastId++;
+    //lastId++;
 }
 
 void Worker::readFromServer()
@@ -158,16 +156,29 @@ void Worker::readFromServer()
 
     else if (buffer["type"]==1)
     {
+        if (buffer["idRoom"].toInt())
+        {
         Room r;
         QString token;
         r.Id=buffer["idRoom"].toInt();
         r.IsActive=true;
         r.Name=buffer["RoomName"].toString();
-        authorizationToken=buffer["Authorization_token"].toString();
+        token=buffer["Authorization_token"].toString();
 
-        token=authorizationToken;
+        //token=authorizationToken;
 
         emit incomingRoom(r, token);
+        }
+        else if (buffer["banRoom"].toInt())
+        {
+            Room r;
+            QString token;
+            r.Id=buffer["banRoom"].toInt();
+            r.IsActive=false;
+            token=buffer["Authorization_token"].toString();
+            emit outcomingRoom(r, token);
+
+        }
 
      }
 

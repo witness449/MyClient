@@ -8,7 +8,6 @@ struct Account
     QString login;
     QString password;
     QString accessToken;
-
 };
 
 #endif // ACCOUNT_H

@@ -20,9 +20,6 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
     clientState.SetLastEvents(pMyDB);
     clientState.SetRooms(pMyDB);
     address.setAddress(adr);
-
-
-
 }
 
 
@@ -71,58 +68,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
      QByteArray reqType=presponse.findHeader("request-type");
 
-     if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
-     {
-         authorizer.readResponse(presponse);
-     }
-
-
-     if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse.getBody().size()>0)
-     {
-         if (!authorizationgFlag)
-         {
-             authorizer.readResponse(presponse);
-
-                 //ui->roomBox->addItem(el.toObject()["login"].toString());
-             }
-
-             /*for(auto& el:RoomNames)
-             {
-                 ui->roomBox->addItem(RoomNames.key(el));
-             }*/
-
-             clientState.SetToken(account.accessToken);
-             clientState.SetRooms(pMyDB);
-             clientState.SetLastEvents(pMyDB);
-
-             emit refreshRooms();
-
-             authorizationgFlag=true;
-             if (account.accessToken=="")
-                 authorizationgFlag=false;
-
-
-         if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationgFlag==true)){
-
-
-
-             //ui->statusLabel->setText("Authorized");
-
-
-               StartSynchronization();
-
-
-
-
-
-         }
-
-         else{
-            // ui->statusLabel->setText("Unauthorized");
-         }
-     }
-
-     else if(QString::localeAwareCompare(reqType, "Registration")==0){
+     if(QString::localeAwareCompare(reqType, "Registration")==0){
          registrator.readResponse(presponse);
          /*if (QString::localeAwareCompare(presponse.returnStatus(), "200")==0){
              ui->statusLabel->setText("Registered");
@@ -131,6 +77,34 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
              ui->statusLabel->setText("Unregistered");
          }*/
      }
+     if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
+     {
+         authorizer.readResponse(presponse);
+     }
+
+     if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse.getBody().size()>0)
+     {
+         if (!authorizationgFlag)
+         {
+             authorizer.readResponse(presponse);
+         }
+         clientState.SetToken(account.accessToken);
+         clientState.SetRooms(pMyDB);
+         clientState.SetLastEvents(pMyDB);
+         emit refreshRooms();
+         authorizationgFlag=true;
+         if (account.accessToken=="")
+             authorizationgFlag=false;
+         if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationgFlag==true))
+         {
+             //ui->statusLabel->setText("Authorized");
+             StartSynchronization();
+         }
+         else{
+            // ui->statusLabel->setText("Unauthorized");
+         }
+     }
+
  }
 
  void ClientLogic:: ToRegisterSlot(QString log, QString pass)
@@ -151,9 +125,9 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
  void ClientLogic::incomingMessageMWSlot(Event message)
  {
-     pMyDB->insertMessage(message.Content, message.Id, message.IdRoom);
-
+     pMyDB->insertMessage(message);
      clientState.SetLastEvents(pMyDB);
+     emit clientStateChanged(clientState);
 
      /*if(contactLogin!=""){
      QList<QString> textList=pMyDB->takeMessages(contactLogin);
@@ -162,12 +136,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      //for(QString & x:textList)
          //ui->chatBrowser->append(x);
      }*/
-
-     emit clientStateChanged(clientState);
-
-
-
-     /*QList<QString> textList=pMyDB->takeMessages();
+    /*QList<QString> textList=pMyDB->takeMessages();
      ui->chatBrowser->clear();
 
      for(QString & x:textList)
@@ -188,11 +157,20 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      clientState.SetLastEvents(pMyDB);
 
      emit refreshRooms();
-
-
      emit clientStateChanged(clientState);
+ }
 
+ void ClientLogic::outcomingRoomMWSlot(Room r, QString s)
+ {
+     pMyDB->deleteRoom(r);
+     account.accessToken=s;
 
+     clientState.SetToken(account.accessToken);
+     clientState.SetRooms(pMyDB);
+     clientState.SetLastEvents(pMyDB);
+
+     emit refreshRooms();
+     emit clientStateChanged(clientState);
  }
 
  void ClientLogic::ToSendSlot(QString contLog, QString txt)
@@ -209,7 +187,8 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      jsonObject["message"] = text;
 
      //QString room=ui->roomBox->currentText();
-     QString room=contLog;
+     Room room;
+     room.Name=contLog;
      //qDebug()<<contactLogin;
      //jsonObject["room_id"] = QString::number(*RoomNames.find(room));
      int roomId=pMyDB->selectRoomId(room);
@@ -241,6 +220,27 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      sendRequest.write(sendData, true, &socketPut);
  }
 
+ void ClientLogic::ToBanSLOT(QString contactLogin)
+ {
+     MyRequest sendRequest;
+     sendRequest.setMethod("POST");
+     sendRequest.setVersion("HTTP/1.1");
+     sendRequest.setPath("/ban");
+
+     Room r;
+     r.Name=contactLogin;
+     int roomId=pMyDB->selectRoomId(r);
+
+     QJsonObject jsonObject;
+     jsonObject["creatorLogin"] = account.login;
+     jsonObject["idRoom"]=QString::number(roomId);
+
+     QJsonDocument document=QJsonDocument(jsonObject);
+     QByteArray sendData = document.toJson();
+
+     sendRequest.write(sendData, true, &socketPut);
+ }
+
  void ClientLogic::StartSynchronization()
  {
      if (count!=0)
@@ -253,9 +253,9 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      //pMyDB->createTable();
      //int lastId=pMyDB->selectMessageId()+1;
      int lastId=0;
-     QString arg="arg";
-     QString authToken=account.accessToken.mid(0, 16);
-     authToken+="_"+arg;
+     //QString arg="arg";
+     //QString authToken=account.accessToken.mid(0, 16);
+     //authToken+="_"+arg;
 
      thread = new SyncThread(clientState, account.accessToken, account.login, this, lastId);
      connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
@@ -263,14 +263,28 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      thread->start();
      QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
      QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
-
-
      QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
      QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
      QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
+     QObject::connect(thread, SIGNAL(outcomingRoomSync(Room, QString)), this, SLOT(outcomingRoomMWSlot(Room, QString)));
+     //QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
+ }
 
+ void ClientLogic::ToUnBanSLOT(QString contactLogin)
+ {
+     MyRequest sendRequest;
+     sendRequest.setMethod("POST");
+     sendRequest.setVersion("HTTP/1.1");
+     sendRequest.setPath("/unban");
 
-     QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
+     QJsonObject jsonObject;
+     jsonObject["creatorLogin"] = account.login;
+     jsonObject["contactLogin"]=contactLogin;
+
+     QJsonDocument document=QJsonDocument(jsonObject);
+     QByteArray sendData = document.toJson();
+
+     sendRequest.write(sendData, true, &socketPut);
  }
 
 

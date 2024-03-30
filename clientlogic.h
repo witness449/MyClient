@@ -21,13 +21,10 @@ class ClientLogic : public QObject
     MyDatabase* pMyDB;
     ClientState clientState;
     QSslSocket socketPut;
-
     MyResponse& presponse= *new MyResponse();
 
     Account account;
-
     bool authorizationgFlag=false;
-
     SyncThread* thread;
     static int count;
     Registrator registrator;
@@ -51,10 +48,14 @@ public slots:
     void ToAuthentificateSlot(QString, QString);
     void incomingMessageMWSlot(Event event);
     void incomingRoomMWSlot(Room, QString);
+    void outcomingRoomMWSlot(Room, QString);
     void ToSendSlot(QString, QString);
     void ToFindSLOT(QString);
+    void ToBanSLOT(QString);
+    void ToUnBanSLOT(QString);
     //void printSslErrors(const QList<QSslError> & erList);
     void StartSynchronization();
+
 
 };
 

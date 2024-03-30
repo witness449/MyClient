@@ -183,9 +183,30 @@
      </layout>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="banButton">
+        <property name="text">
+         <string>Ban</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="banEdit"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="unButton">
+        <property name="text">
+         <string>Unban</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QLabel" name="statusLabel">
       <property name="text">
-       <string/>
+       <string>TextLabel</string>
       </property>
      </widget>
     </item>

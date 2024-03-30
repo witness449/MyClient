@@ -20,6 +20,7 @@ void SyncThread::run()
     QObject::connect(pw, SIGNAL(workerDisonnected()), this, SLOT (workerDisconnectedSlot()));
     QObject::connect(this, SIGNAL (clientStateChangedFromSync(ClientState)), pw, SLOT (clientStateChangedWorkerSlot(ClientState)));
     QObject::connect(pw, SIGNAL(incomingRoom(Room, QString)), this, SLOT(incomingRoomSlot(Room, QString)));
+    QObject::connect(pw, SIGNAL(outcomingRoom(Room, QString)), this, SLOT(outcomingRoomSlot(Room, QString)));
 
 
     exec();
@@ -55,5 +56,12 @@ void SyncThread::incomingRoomSlot(Room room, QString token)
     emit incomingRoomSync(r, token);
 }
 
+
+ void SyncThread::outcomingRoomSlot(Room room, QString token)
+ {
+     Room r=room;
+     authorizationToken=token;
+     emit outcomingRoomSync(r, token);
+ }
 
 

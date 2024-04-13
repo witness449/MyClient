@@ -199,9 +199,9 @@ void MyDatabase::insertMessage(Event e)
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
-        QString IdStr=QString::number(e.Id);
-        QString IdRoomStr=QString::number(e.IdRoom);
-        QString insert ="INSERT INTO Events(Id, IdRoom, Content) VALUES ("+IdStr+", "+IdRoomStr+", '"+e.Content+"')";
+        QString IdStr=QString::number(e.id);
+        QString IdRoomStr=QString::number(e.idRoom);
+        QString insert ="INSERT INTO Events(Id, IdRoom, Content) VALUES ("+IdStr+", "+IdRoomStr+", '"+e.content+"')";
         bool res=query.exec(insert);
         qDebug()<<"Insert query status: "<<res;
         if (!res) qDebug()<<query.lastError();
@@ -236,7 +236,7 @@ void MyDatabase::insertRoom(Room r)
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
-        QString insertRoom ="INSERT INTO Rooms (Id, Name, IsActive) VALUES ("+QString::number(r.Id)+", '"+r.Name+"', "+QString::number(r.IsActive)+")";
+        QString insertRoom ="INSERT INTO Rooms (Id, Name, IsActive) VALUES ("+QString::number(r.id)+", '"+r.name+"', "+QString::number(r.isActive)+")";
         bool res=query.exec(insertRoom);
         qDebug()<<"Insert query status: "<<res;
         if (!res) qDebug()<<query.lastError();
@@ -247,7 +247,7 @@ void MyDatabase::insertContact(Contact c)
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
-        QString insertContact ="INSERT INTO Contacts (Login, IdRoom) VALUES ('"+c.Login+"', "+QString::number(c.IdRoom)+")";
+        QString insertContact ="INSERT INTO Contacts (Login, IdRoom) VALUES ('"+c.login+"', "+QString::number(c.idRoom)+")";
         bool res=query.exec(insertContact);
         qDebug()<<"Insert query status: "<<res;
         if (!res) qDebug()<<query.lastError();
@@ -282,7 +282,7 @@ int MyDatabase::selectRoomId(Room r)
 {
     int result;
     QSqlQuery query(myDB);
-    QString selectRooms ="select Id from Rooms where Name='"+r.Name+"'";
+    QString selectRooms ="select Id from Rooms where Name='"+r.name+"'";
     bool res=query.exec(selectRooms);
     QSqlRecord rec =query.record();
 
@@ -298,11 +298,11 @@ void MyDatabase::deleteRoom(Room r)
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
-        QString insertRoom ="DELETE FROM Rooms WHERE Id="+QString::number(r.Id);
+        QString insertRoom ="DELETE FROM Rooms WHERE Id="+QString::number(r.id);
         bool res=query.exec(insertRoom);
 
         QSqlQuery query2(myDB);
-        QString deleteContact ="DELETE FROM Contacts WHERE IdRoom="+QString::number(r.Id);
+        QString deleteContact ="DELETE FROM Contacts WHERE IdRoom="+QString::number(r.id);
         res=query2.exec(deleteContact);
 
         qDebug()<<"Insert query status: "<<res;

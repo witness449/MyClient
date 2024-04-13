@@ -16,9 +16,9 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QPushButton" name="stopButton">
+     <widget class="QPushButton" name="logoutButton">
       <property name="text">
-       <string>StopSync</string>
+       <string>Logout</string>
       </property>
      </widget>
     </item>
@@ -169,30 +169,30 @@
      </widget>
     </item>
     <item>
-     <layout class="QFormLayout" name="formLayout_3">
-      <item row="0" column="0">
+     <widget class="QPushButton" name="LeaveChatButton">
+      <property name="text">
+       <string>Leave</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="findUserEdit"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
        <widget class="QPushButton" name="find">
         <property name="text">
          <string>Find</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="findUserEdit"/>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QPushButton" name="banButton">
         <property name="text">
          <string>Ban</string>
         </property>
        </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="banEdit"/>
       </item>
       <item>
        <widget class="QPushButton" name="unButton">

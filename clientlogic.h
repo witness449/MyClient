@@ -11,6 +11,11 @@
 #include "account.h"
 #include "registrator.h"
 #include "authorizer.h"
+#include "contactcreator.h"
+#include "sender.h"
+#include "leaver.h"
+#include "banner.h"
+#include "unbanner.h"
 
 class ClientLogic : public QObject
 {
@@ -27,8 +32,15 @@ class ClientLogic : public QObject
     bool authorizationgFlag=false;
     SyncThread* thread;
     static int count;
-    Registrator registrator;
-    Authorizer authorizer;
+    Registrator* registrator;
+    Authorizer* authorizer;
+    ContactCreator* contactCreator;
+    Sender* sender;
+    Leaver* leaver;
+    Banner* banner;
+    Unbanner* unbanner;
+
+
 
     Q_OBJECT
 public:
@@ -37,24 +49,26 @@ public:
 signals:
     void refreshRooms();
     void clientStateChanged(ClientState);
+    void emitStatus(QString status);
 
 public slots:
-    void ConnectSlot();
+    void connectSlot();
     //Слоты для оргазиции подключения и отправки сообщений
     void slotConnected();
     void slotDisconnected();
     void readFromServer();
-    void ToRegisterSlot(QString, QString);
-    void ToAuthentificateSlot(QString, QString);
+    void toRegisterSlot(QString, QString);
+    void toAuthentificateSlot(QString, QString);
     void incomingMessageMWSlot(Event event);
     void incomingRoomMWSlot(Room, QString);
     void outcomingRoomMWSlot(Room, QString);
-    void ToSendSlot(QString, QString);
-    void ToFindSLOT(QString);
-    void ToBanSLOT(QString);
-    void ToUnBanSLOT(QString);
+    void toSendSlot(QString, QString);
+    void toFindSLOT(QString);
+    void toLeaveSlot(QString);
+    void toBanSLOT(QString);
+    void toUnBanSLOT(QString);
     //void printSslErrors(const QList<QSslError> & erList);
-    void StartSynchronization();
+    void startSynchronization();
 
 
 };

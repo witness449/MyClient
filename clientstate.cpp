@@ -5,54 +5,54 @@ ClientState::ClientState()
 }
 
 
-QString ClientState::GetToken()
+QString ClientState::getToken()
 {
-    return AccessToken;
+    return accessToken;
 }
 
-QMap<int, bool> ClientState::GetActiveRooms()
+QMap<int, bool> ClientState::getActiveRooms()
 {
-    return Rooms;
+    return rooms;
 }
-QMap<int, int> ClientState::GetLastEvents()
+QMap<int, int> ClientState::getLastEvents()
 {
-    return Events;
-}
-
-
-void ClientState::SetToken(QString token)
-{
-    AccessToken=token;
+    return events;
 }
 
-void ClientState::SetRooms(MyDatabase *pMDB)
+
+void ClientState::setToken(QString token)
 {
-    Rooms=pMDB->selectRooms();
+    accessToken=token;
 }
 
-void ClientState::SetLastEvents(MyDatabase *pMDB)
+void ClientState::setRooms(MyDatabase *pMDB)
 {
-    Events=pMDB->selectTopMessages();
+    rooms=pMDB->selectRooms();
+}
+
+void ClientState::setLastEvents(MyDatabase *pMDB)
+{
+    events=pMDB->selectTopMessages();
 }
 
 ClientState& ClientState::operator=(const ClientState& cs)
 {
-    AccessToken=cs.AccessToken;
-    Rooms=cs.Rooms;
-    Events=cs.Events;
+    accessToken=cs.accessToken;
+    rooms=cs.rooms;
+    events=cs.events;
 
     return *this;
 
 }
 
-QJsonObject ClientState::ToJson()
+QJsonObject ClientState::toJson()
 {
     QJsonObject objectRes;
-    objectRes["AccessToken"]=AccessToken;
+    objectRes["AccessToken"]=accessToken;
     QJsonArray arRooms;
     QJsonArray arEvents;
 
-    for (auto i=Rooms.begin(); i!=Rooms.end(); i++)
+    for (auto i=rooms.begin(); i!=rooms.end(); i++)
     {
         QJsonObject object;
         object["Id"]=i.key();
@@ -60,7 +60,7 @@ QJsonObject ClientState::ToJson()
         arRooms.append(object);
     }
 
-    for (auto i=Events.begin(); i!=Events.end(); i++)
+    for (auto i=events.begin(); i!=events.end(); i++)
     {
         QJsonObject object;
         object["IdRoom"]=i.key();

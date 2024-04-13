@@ -22,43 +22,38 @@ void Authorizer::sendRequest()
 void Authorizer::readResponse(MyResponse & presponse)
 {
     QString reqType=QString(presponse.findHeader("request-type"));
-
     int type=reqType=="AuthentificationStage1"?0:1;
 
     switch (type)
     {
-            case 0:
-    {
-
-
-    QByteArray bodyData(presponse.getBody());
-    QJsonDocument doc=QJsonDocument::fromJson(bodyData);
-    QJsonObject buffer=doc.object();
-
-    MyRequest authRequest;
-    authRequest.setMethod("POST");
-    authRequest.setVersion("HTTP/1.1");
-    authRequest.setPath("/auth");
-
-    authRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject;
-    jsonObject["identifier"] = account.login;
-    jsonObject["password"] = account.password;
-    jsonObject["session"]=buffer["session"];
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray authData = document.toJson();
-
-    authRequest.write(authData, true, socket);
-    }
-        break;
-        case  1:
-    {
+        case 0:{
         QByteArray bodyData(presponse.getBody());
         QJsonDocument doc=QJsonDocument::fromJson(bodyData);
         QJsonObject buffer=doc.object();
 
-        account.accessToken=buffer["Authorization_token"].toString();
-        QJsonArray RoomsArr= buffer["Rooms"].toArray();
+        MyRequest authRequest;
+        authRequest.setMethod("POST");
+        authRequest.setVersion("HTTP/1.1");
+        authRequest.setPath("/auth");
+
+        authRequest.appendHeader("Content-Type", "application/json");
+        QJsonObject jsonObject;
+        jsonObject["identifier"] = account.login;
+        jsonObject["password"] = account.password;
+        jsonObject["session"]=buffer["session"];
+        QJsonDocument document=QJsonDocument(jsonObject);
+        QByteArray authData = document.toJson();
+        authRequest.write(authData, true, socket);
+        }
+        break;
+
+        case  1:{
+        QByteArray bodyData(presponse.getBody());
+        QJsonDocument doc=QJsonDocument::fromJson(bodyData);
+        QJsonObject buffer=doc.object();
+
+        account.accessToken=buffer["access_token"].toString();
+        QJsonArray RoomsArr= buffer["rooms"].toArray();
 
         int i=1;
         //while(buffer[QString::number(i)+"Room"].toString()!=""){
@@ -70,19 +65,18 @@ void Authorizer::readResponse(MyResponse & presponse)
             //Rooms.append(el.toObject()["id"].toString());
             //RoomNames.insert(el.toObject()["login"].toString(), el.toObject()["id"].toString().toInt());
             Room room;
-            room.Id=el.toObject()["id"].toString().toInt();
-            room.Name=el.toObject()["login"].toString();
-            room.IsActive=1;
+            room.id=el.toObject()["id"].toString().toInt();
+            room.name=el.toObject()["login"].toString();
+            room.isActive=1;
 
             Contact c;
-            c.Login=el.toObject()["login"].toString();
-            c.IdRoom=el.toObject()["id"].toString().toInt();
-
+            c.login=el.toObject()["login"].toString();
+            c.idRoom=el.toObject()["id"].toString().toInt();
 
             pMyDB->insertRoom(room);
             pMyDB->insertContact(c);
             pMyDB->printTable();
+         }
+         }
     }
-
-    }
-}}
+}

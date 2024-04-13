@@ -17,14 +17,17 @@ int main(int argc, char *argv[])
     MyDatabase mDB;
     ClientLogic cl(&mDB);
     MainWindow w(&mDB);
-    QObject::connect(&w, SIGNAL (ToConnect()), &cl, SLOT(ConnectSlot()));
-    QObject::connect(&w, SIGNAL (ToRegister(QString, QString)), &cl, SLOT(ToRegisterSlot(QString, QString)));
-    QObject::connect(&w, SIGNAL (ToAuthentificate(QString, QString)), &cl, SLOT (ToAuthentificateSlot(QString, QString)));
-    QObject::connect(&cl, SIGNAL (refreshRooms()), &w, SLOT (AuthPassSlot()));
-    QObject::connect(&w, SIGNAL(ToSend(QString, QString)), &cl, SLOT(ToSendSlot(QString, QString)));
-    QObject::connect(&w, SIGNAL(ToFind(QString)), &cl, SLOT(ToFindSLOT(QString)));
-    QObject::connect(&w, SIGNAL(ToBan(QString)), &cl, SLOT(ToBanSLOT(QString)));
-    QObject::connect(&w, SIGNAL(ToUnBan(QString)), &cl, SLOT(ToUnBanSLOT(QString)));
+    QObject::connect(&w, SIGNAL (toConnect()), &cl, SLOT(connectSlot()));
+    QObject::connect(&w, SIGNAL (toRegister(QString, QString)), &cl, SLOT(toRegisterSlot(QString, QString)));
+    QObject::connect(&w, SIGNAL (toAuthentificate(QString, QString)), &cl, SLOT (toAuthentificateSlot(QString, QString)));
+    QObject::connect(&cl, SIGNAL (refreshRooms()), &w, SLOT (authPassSlot()));
+    QObject::connect(&w, SIGNAL(toSend(QString, QString)), &cl, SLOT(toSendSlot(QString, QString)));
+    QObject::connect(&w, SIGNAL(toFind(QString)), &cl, SLOT(toFindSLOT(QString)));
+    QObject::connect(&w, SIGNAL(toLeave(QString)), &cl, SLOT(toLeaveSlot(QString)));
+    QObject::connect(&w, SIGNAL(toBan(QString)), &cl, SLOT(toBanSLOT(QString)));
+    QObject::connect(&w, SIGNAL(toUnBan(QString)), &cl, SLOT(toUnBanSLOT(QString)));
+    QObject::connect(&cl, SIGNAL(emitStatus(QString)), &w, SLOT(setStatus(QString)));
+
 
     w.show();
 

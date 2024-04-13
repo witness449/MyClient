@@ -8,6 +8,8 @@
 #include <QJsonArray>
 #include "room.h"
 #include "event.h"
+#include <QStandardItem>
+#include "mydelegate.h"
 
 
 
@@ -50,7 +52,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_connButton_clicked()
 {
-    emit ToConnect();
+    emit toConnect();
 
    }
 
@@ -73,12 +75,12 @@ void MainWindow::on_regButton_clicked()
 {
     QString login=ui->loginEdit->text();
     QString password=ui->passwordEdit->text();
-    emit ToRegister(login, password);
+    emit toRegister(login, password);
 }
 
 void MainWindow::on_authButton_clicked()
 {
-    emit ToAuthentificate(ui->loginEdit->text(), ui->passwordEdit->text());
+    emit toAuthentificate(ui->loginEdit->text(), ui->passwordEdit->text());
 
 }
 
@@ -86,7 +88,7 @@ void MainWindow::on_authButton_clicked()
 void MainWindow::on_sendButton_clicked()
 {
     QString text=ui->messageEdit->text();
-    emit ToSend(contactLogin, text);
+    emit toSend(contactLogin, text);
 }
 
 
@@ -110,7 +112,7 @@ void MainWindow::syncDisconnected()
 
 void MainWindow::on_find_clicked()
 {
-    emit ToFind(ui->findUserEdit->text());
+    emit toFind(ui->findUserEdit->text());
 }
 
 
@@ -137,14 +139,23 @@ void MainWindow::on_tableView_activated(const QModelIndex &index)
 
 }
 
-void MainWindow::AuthPassSlot()
+void MainWindow::authPassSlot()
 {
+    contactLogin="";
+
+    //ui->tableView->setAlternatingRowColors(true);
+    //QPalette bgpal;
+    //bgpal.setColor (QPalette::Background, QColor (255, 0 , 0, 255));
+    //ui->tableView->setPalette(bgpal);
+    //MyDelegate* delegate;
+    //ui->tableView->setItemDelegate(delegate);
     rooms->select();
+
 }
 
 void MainWindow::on_banButton_clicked()
 {
-    emit ToBan(ui->banEdit->text());
+    emit toBan(ui->findUserEdit->text());
 }
 
 /*void MainWindow::incomingRoomMWSlot(Room r, QString s)
@@ -197,5 +208,15 @@ void MainWindow::on_banButton_clicked()
 
 void MainWindow::on_unButton_clicked()
 {
-    emit ToUnBan(ui->banEdit->text());
+    emit toUnBan(ui->findUserEdit->text());
+}
+
+void MainWindow::setStatus(QString str)
+{
+    ui->statusLabel->setText(str);
+}
+
+void MainWindow::on_LeaveChatButton_clicked()
+{
+    emit toLeave(contactLogin);
 }

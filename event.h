@@ -6,9 +6,9 @@
 
 struct Event
 {
-    int IdRoom;
-    int Id;
-    QString Content;
+    int idRoom;
+    int id;
+    QString content;
 
 };
 

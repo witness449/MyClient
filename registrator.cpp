@@ -13,21 +13,20 @@ void Registrator::sendRequest()
     MyRequest regRequest;
     regRequest.setMethod("POST");
     regRequest.setVersion("HTTP/1.1");
-    regRequest.setPath("/reg");
+    regRequest.setPath("/register");
 
     regRequest.appendHeader("Content-Type", "application/json");
     QJsonObject jsonObject;
-    jsonObject["Login"] = account.login;
-    jsonObject["Password"] = account.password;
+    jsonObject["identifier"] = account.login;
+    jsonObject["password"] = account.password;
+    jsonObject["type"]="m.login.password";
     QJsonDocument document=QJsonDocument(jsonObject);
     QByteArray regData = document.toJson();
 
     regRequest.write(regData, true, socket);
-
 }
 
-void Registrator::readResponse(MyResponse&)
+void Registrator::readResponse(MyResponse& pr)
 {
-    MyResponse pr;
-
+    status=QString(pr.returnStatus());
 }

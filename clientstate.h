@@ -9,22 +9,22 @@
 class ClientState
 {
 private:
-    QString AccessToken;
-    QMap <int, bool> Rooms;
-    QMap<int, int> Events;
+    QString accessToken;
+    QMap <int, bool> rooms;
+    QMap<int, int> events;
 
 public:
     ClientState();
-    QString GetToken();
-    QMap<int, bool> GetActiveRooms();
-    QMap<int, int> GetLastEvents();
+    QString getToken();
+    QMap<int, bool> getActiveRooms();
+    QMap<int, int> getLastEvents();
 
-    void SetToken(QString token);
-    void SetRooms(MyDatabase* pMDB);
-    void SetLastEvents(MyDatabase* pMDB);
+    void setToken(QString token);
+    void setRooms(MyDatabase* pMDB);
+    void setLastEvents(MyDatabase* pMDB);
 
     ClientState& operator=(const ClientState& cs);
-    QJsonObject ToJson();
+    QJsonObject toJson();
 
 };
 

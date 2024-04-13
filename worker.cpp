@@ -19,6 +19,8 @@ QMap<int, QString> TokenParse(QString& accessToken, QString &login)
     return roomsTokens;
 }
 
+
+
 Worker::Worker(ClientState cState,  QString authToken, QString log, QObject *parent, int last_Id)
 {
     QFile file ("clientConfig.txt");
@@ -37,7 +39,7 @@ Worker::Worker(ClientState cState,  QString authToken, QString log, QObject *par
     //lastId=last_Id;
     login=log;
     clientState=cState;
-    QString token=cState.GetToken();
+    QString token=cState.getToken();
     QMap<int, QString> rooms=TokenParse(token, login);
 
     connect(this, SIGNAL(startWorker()), this, SLOT(startWorkerSlot()));
@@ -101,12 +103,12 @@ void Worker:: startSyncSlot()
     //QByteArray last_Id=QString::number(lastId).toUtf8();
     //syncRequest.appendHeader("Id", last_Id);
     //QByteArray authToken=authorizationToken.toUtf8();
-    QByteArray authToken=clientState.GetToken().toUtf8();
+    QByteArray authToken=clientState.getToken().toUtf8();
     syncRequest.appendHeader("Auth_token", authToken);
     syncRequest.appendHeader("Login", login.toUtf8());
 
     syncRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject=clientState.ToJson();
+    QJsonObject jsonObject=clientState.toJson();
     QJsonDocument document=QJsonDocument(jsonObject);
     QByteArray ba = document.toJson();
 
@@ -145,12 +147,12 @@ void Worker::readFromServer()
     if (buffer["type"].toInt()==0)
     {
     Event event;
-    event.Content=buffer["Content"].toString();
-    event.Id=buffer["Id"].toInt();
-    event.IdRoom=buffer["IdRoom"].toInt();
+    event.content=buffer["Content"].toString();
+    event.id=buffer["Id"].toInt();
+    event.idRoom=buffer["IdRoom"].toInt();
     qDebug()<<QString::number(buffer["NewId"].toInt());
 
-    if (event.Content!=""){
+    if (event.content!=""){
     emit incomingMessageEvent(event);}
     }
 
@@ -160,9 +162,9 @@ void Worker::readFromServer()
         {
         Room r;
         QString token;
-        r.Id=buffer["idRoom"].toInt();
-        r.IsActive=true;
-        r.Name=buffer["RoomName"].toString();
+        r.id=buffer["idRoom"].toInt();
+        r.isActive=true;
+        r.name=buffer["RoomName"].toString();
         token=buffer["Authorization_token"].toString();
 
         //token=authorizationToken;
@@ -173,8 +175,8 @@ void Worker::readFromServer()
         {
             Room r;
             QString token;
-            r.Id=buffer["banRoom"].toInt();
-            r.IsActive=false;
+            r.id=buffer["banRoom"].toInt();
+            r.isActive=false;
             token=buffer["Authorization_token"].toString();
             emit outcomingRoom(r, token);
 

@@ -1,23 +1,22 @@
-#ifndef SENDER_H
-#define SENDER_H
-#include "commonprotocol.h"
+#ifndef UNBANNER_H
+#define UNBANNER_H
+
 #include <QString>
 #include <QSSlSocket>
 #include "myresponse.h"
 #include "commonprotocol.h"
 #include "mydatabase.h"
 
-class Sender:public CommonProtocol
+class Unbanner:public CommonProtocol
 {
     MyDatabase* pMyDB;
     Account& account;
 public:
-    Sender(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
+    Unbanner(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
     void sendRequest();
     void readResponse(MyResponse&);
     QString contactLogin;
-    QString txt;
     QString status;
 };
 
-#endif // SENDER_H
+#endif // UNBANNER_H

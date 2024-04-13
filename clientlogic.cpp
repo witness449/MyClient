@@ -6,9 +6,7 @@
 
 int ClientLogic::count=0;
 
-ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyDB (pD),
-    registrator(account, &socketPut),
-    authorizer(account, &socketPut, pMyDB)
+ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyDB (pD)
 {
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
@@ -17,13 +15,13 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
     port=in.readLine().toInt();
     file.close();
 
-    clientState.SetLastEvents(pMyDB);
-    clientState.SetRooms(pMyDB);
+    clientState.setLastEvents(pMyDB);
+    clientState.setRooms(pMyDB);
     address.setAddress(adr);
 }
 
 
- void ClientLogic::ConnectSlot()
+ void ClientLogic::connectSlot()
  {
      if ((socketPut.state()!=QAbstractSocket::ConnectedState)||(socketPut.state()!=QAbstractSocket::ConnectingState)){ //НЕ ПРОВЕРЯЕТ!!!
          /*QFile certfile("D:\\HttpQt\\MyClient\\MyClient\\MyClient\\ca.crt");
@@ -42,7 +40,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
  void ClientLogic::slotConnected()
  {
-
+     emit emitStatus("connected");
  }
 
  void ClientLogic::slotDisconnected()
@@ -69,7 +67,9 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      QByteArray reqType=presponse.findHeader("request-type");
 
      if(QString::localeAwareCompare(reqType, "Registration")==0){
-         registrator.readResponse(presponse);
+         registrator->readResponse(presponse);
+         emit emitStatus(registrator->status);
+         delete registrator;
          /*if (QString::localeAwareCompare(presponse.returnStatus(), "200")==0){
              ui->statusLabel->setText("Registered");
          }
@@ -77,56 +77,89 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
              ui->statusLabel->setText("Unregistered");
          }*/
      }
-     if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
+     else if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
      {
-         authorizer.readResponse(presponse);
+         authorizer->readResponse(presponse);
      }
 
-     if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse.getBody().size()>0)
+     else if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse.getBody().size()>0)
      {
          if (!authorizationgFlag)
          {
-             authorizer.readResponse(presponse);
+             authorizer->readResponse(presponse);
          }
-         clientState.SetToken(account.accessToken);
-         clientState.SetRooms(pMyDB);
-         clientState.SetLastEvents(pMyDB);
+         clientState.setToken(account.accessToken);
+         clientState.setRooms(pMyDB);
+         clientState.setLastEvents(pMyDB);
          emit refreshRooms();
          authorizationgFlag=true;
+
          if (account.accessToken=="")
              authorizationgFlag=false;
          if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationgFlag==true))
          {
              //ui->statusLabel->setText("Authorized");
-             StartSynchronization();
+             startSynchronization();
+             emit emitStatus("Authorized");
+             delete authorizer;
          }
          else{
             // ui->statusLabel->setText("Unauthorized");
+             emit emitStatus ("Unauthorized");
+             delete authorizer;
          }
      }
+     else if (QString::localeAwareCompare(reqType, "Create_room")==0) {
+         contactCreator->readResponse(presponse);
+         emit emitStatus(contactCreator->status);
+         delete contactCreator;
+     }
+     else if (QString::localeAwareCompare(reqType, "Send")==0) {
+         sender->readResponse(presponse);
+         emit emitStatus(sender->status);
+         delete sender;
+     }
+     else if (QString::localeAwareCompare(reqType, "Leave")==0) {
+         leaver->readResponse(presponse);
+         emit emitStatus(leaver->status);
+         delete leaver;
+     }
+     else if (QString::localeAwareCompare(reqType, "Ban")==0) {
+         banner->readResponse(presponse);
+         emit emitStatus(banner->status);
+         delete banner;
+     }
+     else if (QString::localeAwareCompare(reqType, "Unban")==0) {
+         unbanner->readResponse(presponse);
+         emit emitStatus(unbanner->status);
+         delete unbanner;
+     }
+
 
  }
 
- void ClientLogic:: ToRegisterSlot(QString log, QString pass)
+ void ClientLogic:: toRegisterSlot(QString log, QString pass)
  {
+     registrator=new Registrator(account, &socketPut);
      account.login=log;
      account.password=pass;
-     registrator.sendRequest();
+     registrator->sendRequest();
 
  }
 
- void ClientLogic::ToAuthentificateSlot(QString log, QString pass)
+ void ClientLogic::toAuthentificateSlot(QString log, QString pass)
  {
      account.login=log;
      account.password=pass;
-     authorizer.sendRequest();
+     authorizer =new Authorizer(account, &socketPut, pMyDB);
+     authorizer->sendRequest();
 }
 
 
  void ClientLogic::incomingMessageMWSlot(Event message)
  {
      pMyDB->insertMessage(message);
-     clientState.SetLastEvents(pMyDB);
+     clientState.setLastEvents(pMyDB);
      emit clientStateChanged(clientState);
 
      /*if(contactLogin!=""){
@@ -147,14 +180,14 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
  {
      pMyDB->insertRoom(r);
      Contact c;
-     c.Login=r.Name;
-     c.IdRoom=r.Id;
+     c.login=r.name;
+     c.idRoom=r.id;
      pMyDB->insertContact(c);
      account.accessToken=s;
 
-     clientState.SetToken(account.accessToken);
-     clientState.SetRooms(pMyDB);
-     clientState.SetLastEvents(pMyDB);
+     clientState.setToken(account.accessToken);
+     clientState.setRooms(pMyDB);
+     clientState.setLastEvents(pMyDB);
 
      emit refreshRooms();
      emit clientStateChanged(clientState);
@@ -165,83 +198,69 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      pMyDB->deleteRoom(r);
      account.accessToken=s;
 
-     clientState.SetToken(account.accessToken);
-     clientState.SetRooms(pMyDB);
-     clientState.SetLastEvents(pMyDB);
+     clientState.setToken(account.accessToken);
+     clientState.setRooms(pMyDB);
+     clientState.setLastEvents(pMyDB);
 
      emit refreshRooms();
      emit clientStateChanged(clientState);
  }
 
- void ClientLogic::ToSendSlot(QString contLog, QString txt)
+ void ClientLogic::toSendSlot(QString contLog, QString txt)
  {
-     MyRequest sendRequest;
-     sendRequest.setMethod("POST");
-     sendRequest.setVersion("HTTP/1.1");
-     sendRequest.setPath("/send");
-
-     QString text=txt;
-
-     sendRequest.appendHeader("Content-Type", "application/json");
-     QJsonObject jsonObject;
-     jsonObject["message"] = text;
-
-     //QString room=ui->roomBox->currentText();
-     Room room;
-     room.Name=contLog;
-     //qDebug()<<contactLogin;
-     //jsonObject["room_id"] = QString::number(*RoomNames.find(room));
-     int roomId=pMyDB->selectRoomId(room);
-     jsonObject["room_id"]=QString::number(roomId);
-     qDebug()<<QString::number(roomId);
-
-     jsonObject["login"]=account.login;
-
-     QJsonDocument document=QJsonDocument(jsonObject);
-     QByteArray sendData = document.toJson();
-
-     sendRequest.write(sendData, true, &socketPut);
+     if (contLog!=""){
+     sender = new Sender(account, &socketPut, pMyDB);
+     sender->contactLogin=contLog;
+     sender->txt=txt;
+     sender->sendRequest();
+     }
+     else
+     {
+         emit emitStatus("Incorrect contact");
+     }
  }
 
- void ClientLogic::ToFindSLOT(QString contactLogin)
+ void ClientLogic::toFindSLOT(QString contactLogin)
  {
-     MyRequest sendRequest;
-     sendRequest.setMethod("POST");
-     sendRequest.setVersion("HTTP/1.1");
-     sendRequest.setPath("/create_room");
-
-     QJsonObject jsonObject;
-     jsonObject["creatorLogin"] = account.login;
-     jsonObject["clientLogin"]=contactLogin;
-
-     QJsonDocument document=QJsonDocument(jsonObject);
-     QByteArray sendData = document.toJson();
-
-     sendRequest.write(sendData, true, &socketPut);
+     if (contactLogin!=""){
+     contactCreator=new ContactCreator(account, &socketPut, pMyDB),
+     contactCreator->contactLogin=contactLogin;
+     contactCreator->sendRequest();
+     }
+     else
+     {
+         emit emitStatus("Incorrect contact");
+     }
  }
 
- void ClientLogic::ToBanSLOT(QString contactLogin)
+ void ClientLogic::toLeaveSlot(QString contactLogin)
  {
-     MyRequest sendRequest;
-     sendRequest.setMethod("POST");
-     sendRequest.setVersion("HTTP/1.1");
-     sendRequest.setPath("/ban");
-
-     Room r;
-     r.Name=contactLogin;
-     int roomId=pMyDB->selectRoomId(r);
-
-     QJsonObject jsonObject;
-     jsonObject["creatorLogin"] = account.login;
-     jsonObject["idRoom"]=QString::number(roomId);
-
-     QJsonDocument document=QJsonDocument(jsonObject);
-     QByteArray sendData = document.toJson();
-
-     sendRequest.write(sendData, true, &socketPut);
+     if (contactLogin!=""){
+     leaver=new Leaver (account, &socketPut, pMyDB);
+     leaver->contactLogin=contactLogin;
+     leaver->sendRequest();
+     }
+     else
+     {
+         emit emitStatus("Incorrect contact");
+     }
  }
 
- void ClientLogic::StartSynchronization()
+ void ClientLogic::toBanSLOT(QString contactLogin)
+ {
+     if (contactLogin!=""){
+     banner=new Banner (account, &socketPut, pMyDB);
+     banner->contactLogin=contactLogin;
+     banner->sendRequest();
+     }
+     else
+     {
+         emit emitStatus("Incorrect contact");
+     }
+
+ }
+
+ void ClientLogic::startSynchronization()
  {
      if (count!=0)
      {
@@ -270,21 +289,18 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      //QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
  }
 
- void ClientLogic::ToUnBanSLOT(QString contactLogin)
+ void ClientLogic::toUnBanSLOT(QString contactLogin)
  {
-     MyRequest sendRequest;
-     sendRequest.setMethod("POST");
-     sendRequest.setVersion("HTTP/1.1");
-     sendRequest.setPath("/unban");
+     if (contactLogin!=""){
+     unbanner=new Unbanner (account, &socketPut, pMyDB);
+     unbanner->contactLogin=contactLogin;
+     unbanner->sendRequest();
+     }
+     else
+     {
+         emit emitStatus("Incorrect contact");
+     }
 
-     QJsonObject jsonObject;
-     jsonObject["creatorLogin"] = account.login;
-     jsonObject["contactLogin"]=contactLogin;
-
-     QJsonDocument document=QJsonDocument(jsonObject);
-     QByteArray sendData = document.toJson();
-
-     sendRequest.write(sendData, true, &socketPut);
  }
 
 

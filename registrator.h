@@ -10,6 +10,7 @@ public:
     Registrator(Account& acc, QSslSocket* ps);
     void sendRequest();
     void readResponse(MyResponse&);
+    QString status;
  };
 
 #endif // REGISTRATOR_H

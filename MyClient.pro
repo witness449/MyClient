@@ -25,7 +25,12 @@ SOURCES += main.cpp\
     clientlogic.cpp \
     registrator.cpp \
     authorizer.cpp \
-    sender.cpp
+    sender.cpp \
+    mydelegate.cpp \
+    contactcreator.cpp \
+    leaver.cpp \
+    banner.cpp \
+    unbanner.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
@@ -43,7 +48,12 @@ HEADERS  += mainwindow.h \
     account.h \
     registrator.h \
     authorizer.h \
-    sender.h
+    sender.h \
+    mydelegate.h \
+    contactcreator.h \
+    leaver.h \
+    banner.h \
+    unbanner.h
 
 FORMS    += mainwindow.ui
 

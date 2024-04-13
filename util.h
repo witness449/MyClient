@@ -28,4 +28,6 @@ bool WriteToSocketAny(QByteArray data, QTcpSocket* socket)
     return true;
 }
 
+
+
 #endif // UTIL_H

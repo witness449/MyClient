@@ -5,8 +5,8 @@
 
 struct Contact
 {
-    QString Login;
-    int IdRoom;
+    QString login;
+    int idRoom;
 
 };
 

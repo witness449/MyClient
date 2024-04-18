@@ -50,6 +50,7 @@ signals:
     void refreshRooms();
     void clientStateChanged(ClientState);
     void emitStatus(QString status);
+    void emitMessage(QString message);
 
 public slots:
     void connectSlot();

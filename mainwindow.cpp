@@ -220,3 +220,8 @@ void MainWindow::on_LeaveChatButton_clicked()
 {
     emit toLeave(contactLogin);
 }
+
+void MainWindow::receiveMessage(QString message)
+{
+    ui->chatBrowser->append(message);
+}

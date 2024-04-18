@@ -161,6 +161,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      pMyDB->insertMessage(message);
      clientState.setLastEvents(pMyDB);
      emit clientStateChanged(clientState);
+     emit emitMessage(message.content);
 
      /*if(contactLogin!=""){
      QList<QString> textList=pMyDB->takeMessages(contactLogin);

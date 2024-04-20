@@ -6,6 +6,8 @@
 
 int ClientLogic::count=0;
 
+
+
 ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyDB (pD)
 {
     QFile file ("clientConfig.txt");
@@ -40,99 +42,96 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
  void ClientLogic::slotConnected()
  {
-     emit emitStatus("connected");
+     emit emitConnected();
  }
 
  void ClientLogic::slotDisconnected()
  {
-
+     emit emitDisconnected();
  }
 
  void ClientLogic::readFromServer()
  {
-     if(presponse.getStatus()!=MyResponse::waitForBody)
+     if(presponse->getStatus()!=MyResponse::waitForBody)
      {
-         presponse=*new MyResponse();
+         presponse=new MyResponse();
      }
 
      while (socketPut.bytesAvailable() &&
-            presponse.getStatus()!=MyResponse::complete &&
-            presponse.getStatus()!=MyResponse::abort_size &&
-            presponse.getStatus()!=MyResponse::abort_broken)
+            presponse->getStatus()!=MyResponse::complete &&
+            presponse->getStatus()!=MyResponse::abort_size &&
+            presponse->getStatus()!=MyResponse::abort_broken)
 
      {
-         presponse.readFromSocket(socketPut);
+         presponse->readFromSocket(socketPut);
      }
 
-     QByteArray reqType=presponse.findHeader("request-type");
+     QByteArray reqType=presponse->findHeader("request-type");
 
      if(QString::localeAwareCompare(reqType, "Registration")==0){
          registrator->readResponse(presponse);
          emit emitStatus(registrator->status);
+         delete presponse;
          delete registrator;
-         /*if (QString::localeAwareCompare(presponse.returnStatus(), "200")==0){
-             ui->statusLabel->setText("Registered");
-         }
-         else{
-             ui->statusLabel->setText("Unregistered");
-         }*/
      }
-     else if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse.getBody().size()>0)
+     else if(QString::localeAwareCompare(reqType, "AuthentificationStage1")==0&&presponse->getBody().size()>0)
      {
          authorizer->readResponse(presponse);
+         delete presponse;
      }
 
-     else if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse.getBody().size()>0)
+     else if(QString::localeAwareCompare(reqType, "AuthentificationStage2")==0&&presponse->getBody().size()>0)
      {
          if (!authorizationgFlag)
          {
              authorizer->readResponse(presponse);
          }
-         clientState.setToken(account.accessToken);
-         clientState.setRooms(pMyDB);
-         clientState.setLastEvents(pMyDB);
-         emit refreshRooms();
-         authorizationgFlag=true;
 
-         if (account.accessToken=="")
-             authorizationgFlag=false;
-         if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationgFlag==true))
+         this->setClientState();
+
+
+         if ((QString::localeAwareCompare(presponse->returnStatus(), "200")==0)&&(authorizationgFlag==true))
          {
-             //ui->statusLabel->setText("Authorized");
              startSynchronization();
              emit emitStatus("Authorized");
              delete authorizer;
+             delete presponse;
          }
          else{
-            // ui->statusLabel->setText("Unauthorized");
              emit emitStatus ("Unauthorized");
              delete authorizer;
+             delete presponse;
          }
      }
      else if (QString::localeAwareCompare(reqType, "Create_room")==0) {
          contactCreator->readResponse(presponse);
          emit emitStatus(contactCreator->status);
          delete contactCreator;
+         delete presponse;
      }
      else if (QString::localeAwareCompare(reqType, "Send")==0) {
          sender->readResponse(presponse);
          emit emitStatus(sender->status);
          delete sender;
+         delete presponse;
      }
      else if (QString::localeAwareCompare(reqType, "Leave")==0) {
          leaver->readResponse(presponse);
          emit emitStatus(leaver->status);
          delete leaver;
+         delete presponse;
      }
      else if (QString::localeAwareCompare(reqType, "Ban")==0) {
          banner->readResponse(presponse);
          emit emitStatus(banner->status);
          delete banner;
+         delete presponse;
      }
      else if (QString::localeAwareCompare(reqType, "Unban")==0) {
          unbanner->readResponse(presponse);
          emit emitStatus(unbanner->status);
          delete unbanner;
+         delete presponse;
      }
 
 
@@ -161,7 +160,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      pMyDB->insertMessage(message);
      clientState.setLastEvents(pMyDB);
      emit clientStateChanged(clientState);
-     emit emitMessage(message.content);
+     emit emitMessage(message);
 
      /*if(contactLogin!=""){
      QList<QString> textList=pMyDB->takeMessages(contactLogin);
@@ -263,11 +262,11 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
  void ClientLogic::startSynchronization()
  {
-     if (count!=0)
+     /*if (count!=0)
      {
          thread->exit();
      }
-     count++;
+     count++;*/
 
      //pMyDB->dropTable();
      //pMyDB->createTable();
@@ -290,6 +289,11 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      //QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
  }
 
+ void ClientLogic::disConnectSlot()
+ {
+     socketPut.disconnectFromHost();
+ }
+
  void ClientLogic::toUnBanSLOT(QString contactLogin)
  {
      if (contactLogin!=""){
@@ -302,6 +306,26 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
          emit emitStatus("Incorrect contact");
      }
 
+ }
+
+ void ClientLogic::slotLogout()
+ {
+     account.login="";
+     account.password="";
+     account.accessToken="";
+     authorizationgFlag=false;
+     thread->quit();
+ }
+
+ void const ClientLogic::setClientState()
+ {
+     clientState.setToken(account.accessToken);
+     clientState.setRooms(pMyDB);
+     clientState.setLastEvents(pMyDB);
+     emit refreshRooms();
+     authorizationgFlag=true;
+     if (account.accessToken=="")
+         authorizationgFlag=false;
  }
 
 

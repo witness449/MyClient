@@ -52,7 +52,7 @@ void Leaver::sendRequest()
 
 }
 
-void Leaver::readResponse(MyResponse & pr)
+void Leaver::readResponse(MyResponse* pr)
 {
-     status=QString(pr.returnStatus());
+     status=QString(pr->returnStatus());
 }

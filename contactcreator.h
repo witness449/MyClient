@@ -16,7 +16,7 @@ public:
     QString status;
     ContactCreator(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
     void sendRequest();
-    void readResponse(MyResponse&);
+    void readResponse(MyResponse*);
 
 };
 

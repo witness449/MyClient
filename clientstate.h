@@ -15,9 +15,9 @@ private:
 
 public:
     ClientState();
-    QString getToken();
-    QMap<int, bool> getActiveRooms();
-    QMap<int, int> getLastEvents();
+    QString const getToken();
+    QMap<int, bool> const getActiveRooms();
+    QMap<int, int> const getLastEvents();
 
     void setToken(QString token);
     void setRooms(MyDatabase* pMDB);

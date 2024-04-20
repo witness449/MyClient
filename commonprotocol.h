@@ -10,12 +10,12 @@ class CommonProtocol
 {
 protected:
     MyRequest request;
-    MyResponse response;
+    MyResponse* response;
     QSslSocket* socket;
 
 public:
     virtual void sendRequest()=0;
-    virtual void readResponse(MyResponse&)=0;
+    virtual void readResponse(MyResponse*)=0;
 
 };
 

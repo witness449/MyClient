@@ -14,7 +14,7 @@ class Authorizer: public CommonProtocol
 public:
     Authorizer(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
     void sendRequest();
-    void readResponse(MyResponse&);
+    void readResponse(MyResponse*);
 };
 
 #endif // AUTHORIZER_H

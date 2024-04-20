@@ -9,7 +9,7 @@ class Registrator:public CommonProtocol
 public:
     Registrator(Account& acc, QSslSocket* ps);
     void sendRequest();
-    void readResponse(MyResponse&);
+    void readResponse(MyResponse*);
     QString status;
  };
 

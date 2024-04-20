@@ -26,7 +26,7 @@ void Registrator::sendRequest()
     regRequest.write(regData, true, socket);
 }
 
-void Registrator::readResponse(MyResponse& pr)
+void Registrator::readResponse(MyResponse* pr)
 {
-    status=QString(pr.returnStatus());
+    status=QString(pr->returnStatus());
 }

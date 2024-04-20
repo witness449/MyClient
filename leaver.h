@@ -14,7 +14,7 @@ class Leaver:public CommonProtocol
 public:
     Leaver(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
     void sendRequest();
-    void readResponse(MyResponse&);
+    void readResponse(MyResponse*);
     QString contactLogin;
     QString status;
 };

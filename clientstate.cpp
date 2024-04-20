@@ -5,16 +5,16 @@ ClientState::ClientState()
 }
 
 
-QString ClientState::getToken()
+QString const ClientState::getToken()
 {
     return accessToken;
 }
 
-QMap<int, bool> ClientState::getActiveRooms()
+QMap<int, bool> const ClientState::getActiveRooms()
 {
     return rooms;
 }
-QMap<int, int> ClientState::getLastEvents()
+QMap<int, int> const ClientState::getLastEvents()
 {
     return events;
 }

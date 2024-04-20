@@ -164,7 +164,7 @@ void MyDatabase::printTable(){//РАСПЕЧАТАТЬ
     return textList;
 }*/
 
-QList<QString> MyDatabase::takeMessages(QString login){
+QList<QString> const MyDatabase::takeMessages(QString login){
     QSqlQuery query2(myDB);
     QString select2="SELECT * FROM Events AS e INNER JOIN Rooms AS r ON e.IdRoom=r.Id "
             "INNER JOIN Contacts c ON r.Id=c.IdRoom "
@@ -209,7 +209,7 @@ void MyDatabase::insertMessage(Event e)
     }
 }
 
-QMap<int, bool> MyDatabase::selectRooms()
+QMap<int, bool> const MyDatabase::selectRooms()
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
@@ -254,7 +254,7 @@ void MyDatabase::insertContact(Contact c)
     }
 }
 
-QMap<int, int> MyDatabase::selectTopMessages()
+QMap<int, int> const MyDatabase::selectTopMessages()
 {
     if (myDB.isValid()){
         QSqlQuery query(myDB);
@@ -292,6 +292,20 @@ int MyDatabase::selectRoomId(Room r)
 
     return result;
 
+}
+
+QString MyDatabase::selectRoomName(int roomId)
+{
+    QSqlQuery query(myDB);
+    QString result="";
+    QString selectName ="select Name from Rooms where Id='"+QString::number(roomId)+"'";
+    query.exec(selectName);
+    QSqlRecord rec =query.record();
+    while (query.next()){
+        result = query.value(rec.indexOf("Name")).toString();
+        }
+
+    return result;
 }
 
 void MyDatabase::deleteRoom(Room r)

@@ -26,7 +26,7 @@ class ClientLogic : public QObject
     MyDatabase* pMyDB;
     ClientState clientState;
     QSslSocket socketPut;
-    MyResponse& presponse= *new MyResponse();
+    MyResponse* presponse;
 
     Account account;
     bool authorizationgFlag=false;
@@ -40,6 +40,8 @@ class ClientLogic : public QObject
     Banner* banner;
     Unbanner* unbanner;
 
+    void const setClientState();
+
 
 
     Q_OBJECT
@@ -50,7 +52,9 @@ signals:
     void refreshRooms();
     void clientStateChanged(ClientState);
     void emitStatus(QString status);
-    void emitMessage(QString message);
+    void emitMessage(Event message);
+    void emitConnected();
+    void emitDisconnected();
 
 public slots:
     void connectSlot();
@@ -70,8 +74,10 @@ public slots:
     void toUnBanSLOT(QString);
     //void printSslErrors(const QList<QSslError> & erList);
     void startSynchronization();
-
-
+    void disConnectSlot();
+    void slotLogout();
 };
+
+
 
 #endif // CLIENTLOGIC_H

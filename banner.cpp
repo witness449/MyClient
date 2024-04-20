@@ -52,7 +52,7 @@ void Banner::sendRequest()
 
 }
 
-void Banner::readResponse(MyResponse & pr)
+void Banner::readResponse(MyResponse* pr)
 {
-    status=QString(pr.returnStatus());
+    status=QString(pr->returnStatus());
 }

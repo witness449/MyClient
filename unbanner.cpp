@@ -41,7 +41,7 @@ void Unbanner::sendRequest()
 
 }
 
-void Unbanner::readResponse(MyResponse & pr)
+void Unbanner::readResponse(MyResponse* pr)
 {
-    status=QString(pr.returnStatus());
+    status=QString(pr->returnStatus());
 }

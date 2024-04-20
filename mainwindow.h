@@ -57,7 +57,9 @@ private slots:
     void setStatus(QString);
 
     void on_LeaveChatButton_clicked();
-    void receiveMessage(QString);
+    void receiveMessage(Event);
+
+    void on_logoutButton_clicked();
 
 signals:
     void stopSync();
@@ -70,6 +72,8 @@ signals:
     void toLeave(QString);
     void toBan(QString);
     void toUnBan(QString);
+    void toDisconnect();
+    void toLogout();
 
 private:
 

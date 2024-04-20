@@ -27,8 +27,11 @@ int main(int argc, char *argv[])
     QObject::connect(&w, SIGNAL(toBan(QString)), &cl, SLOT(toBanSLOT(QString)));
     QObject::connect(&w, SIGNAL(toUnBan(QString)), &cl, SLOT(toUnBanSLOT(QString)));
     QObject::connect(&cl, SIGNAL(emitStatus(QString)), &w, SLOT(setStatus(QString)));
-    QObject::connect(&cl, SIGNAL (emitMessage(QString)), &w, SLOT(receiveMessage(QString)));
-
+    QObject::connect(&cl, SIGNAL (emitMessage(Event)), &w, SLOT(receiveMessage(Event)));
+    QObject::connect(&cl, SIGNAL (emitConnected()), &w, SLOT(slotConnected()));
+    QObject::connect(&w, SIGNAL (toDisconnect()), &cl, SLOT(disConnectSlot()));
+    QObject::connect(&cl, SIGNAL (emitDisconnected()), &w, SLOT(slotDisconnected()));
+    QObject::connect(&w, SIGNAL(toLogout()), &cl, SLOT(slotLogout()));
 
     w.show();
 

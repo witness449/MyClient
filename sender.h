@@ -14,7 +14,7 @@ class Sender:public CommonProtocol
 public:
     Sender(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
     void sendRequest();
-    void readResponse(MyResponse&);
+    void readResponse(MyResponse*);
     QString contactLogin;
     QString txt;
     QString status;

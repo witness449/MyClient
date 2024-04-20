@@ -19,11 +19,12 @@ private:
     QSqlDatabase myDB;
     void createConnection(); //Установить соединение с базой данных
     void closeConnection(); //Закрыть соединение с базой данных
-    void createTable(); //Создать таблицы
+
 
 public:
     void dropTable(); //Удалить таблицы
     void printTable(); //Вывести таблицы в консоль дебаггера
+    void createTable(); //Создать таблицы
     MyDatabase();
     ~MyDatabase();
 
@@ -35,14 +36,15 @@ public:
     void insertRoom(Room r);
     void insertContact(Contact c);
     int selectRoomId(Room r);
+    QString selectRoomName(int roomId);
     void deleteRoom(Room r);
 
 
     //int selectMessageId(); //Получение идентификатора последнего сообщения в текущем чате
     //QList<QString> takeMessages();//Получить сообщения текущего чата
-    QList<QString> takeMessages(QString);
-    QMap<int, bool> selectRooms();
-    QMap<int, int> selectTopMessages();
+    QList<QString> const takeMessages(QString);
+    QMap<int, bool> const selectRooms();
+    QMap<int, int> const selectTopMessages();
 
     QSqlDatabase getDBPointer()
     {

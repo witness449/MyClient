@@ -60,7 +60,7 @@ void Sender::sendRequest()
     sendRequest.write(sendData, true, socket);
 }
 
-void Sender::readResponse(MyResponse& pr)
+void Sender::readResponse(MyResponse* pr)
 {
-    status=QString(pr.returnStatus());
+    status=QString(pr->returnStatus());
 }

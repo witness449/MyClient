@@ -19,15 +19,15 @@ void Authorizer::sendRequest()
 
 }
 
-void Authorizer::readResponse(MyResponse & presponse)
+void Authorizer::readResponse(MyResponse* presponse)
 {
-    QString reqType=QString(presponse.findHeader("request-type"));
+    QString reqType=QString(presponse->findHeader("request-type"));
     int type=reqType=="AuthentificationStage1"?0:1;
 
     switch (type)
     {
         case 0:{
-        QByteArray bodyData(presponse.getBody());
+        QByteArray bodyData(presponse->getBody());
         QJsonDocument doc=QJsonDocument::fromJson(bodyData);
         QJsonObject buffer=doc.object();
 
@@ -48,7 +48,7 @@ void Authorizer::readResponse(MyResponse & presponse)
         break;
 
         case  1:{
-        QByteArray bodyData(presponse.getBody());
+        QByteArray bodyData(presponse->getBody());
         QJsonDocument doc=QJsonDocument::fromJson(bodyData);
         QJsonObject buffer=doc.object();
 
@@ -76,7 +76,8 @@ void Authorizer::readResponse(MyResponse & presponse)
             pMyDB->insertRoom(room);
             pMyDB->insertContact(c);
             pMyDB->printTable();
-         }
-         }
+        }
+        }
+        break;
     }
 }

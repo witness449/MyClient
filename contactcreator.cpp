@@ -27,7 +27,7 @@ void ContactCreator::sendRequest()
     sendRequest.write(sendData, true, socket);
 }
 
-void ContactCreator::readResponse(MyResponse& pr)
+void ContactCreator::readResponse(MyResponse* pr)
 {
-    status=QString(pr.returnStatus());
+    status=QString(pr->returnStatus());
 }

@@ -5,215 +5,132 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
+#include <QJsonArray>
+#include "room.h"
+#include "event.h"
+#include <QStandardItem>
+#include "mydelegate.h"
 
-int MainWindow::count=0;
 
-MainWindow::MainWindow(QWidget *parent) :
+
+MainWindow::MainWindow(MyDatabase* pMDB, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    QFile file ("clientConfig.txt");
-    file.open(QIODevice::ReadOnly);
-
-    QTextStream in(&file);
-
-    adr=in.readLine();
-    port=in.readLine().toInt();
-
-    file.close();
-
-    address.setAddress(adr);
 
     ui->setupUi(this);
     ui->connecIndic->setPixmap(QPixmap("noconnect.png"));
-    ui->connecSyncIndic->setPixmap(QPixmap("noconnect.png"));
     ui->statusLabel->setText("");
 
-    pMyDB=new MyDatabase();
-    pMyDB->createConnection();
-    pMyDB->createTable();
-    //pMyDB->dbInsert("test user");
-    //pMyDB->insertTestMessages();
+    pMyDB=pMDB;
     pMyDB->printTable();
 
-    QList<QString> textList=pMyDB->takeMessages();
-    for(QString & x:textList)
-    ui->chatBrowser->append(x);
+    //QList<QString> textList=pMyDB->takeMessages();
+    /*for(QString & x:textList)
+    ui->chatBrowser->append(x);*/
+
+    rooms=new QSqlTableModel(this, pMyDB->getDBPointer());
+    rooms->setTable("Rooms");
+
+    ui->tableView->setModel(rooms);
+    ui->tableView->hideColumn(0);
+    ui->tableView->hideColumn(2);
+    ui->tableView->hideColumn(3);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    connect(ui->tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+                 this, SLOT(slotSelectionChange(const QItemSelection &, const QItemSelection &))                );
+
+    ui->authButton->setEnabled(false);
+    ui->regButton->setEnabled(false);
+    ui->sendButton->setEnabled(false);
+    ui->banButton->setEnabled(false);
+    ui->disconButton->setEnabled(false);
+    ui->LeaveChatButton->setEnabled(false);
+    ui->banButton->setEnabled(false);
+    ui->unButton->setEnabled(false);
+    ui->find->setEnabled(false);
+    ui->findUserEdit->setEnabled(false);
+    ui->loginEdit->setEnabled(false);
+    ui->passwordEdit->setEnabled(false);
+    ui->logoutButton->setEnabled(false);
+
 }
 
 MainWindow::~MainWindow()
 {
-    pMyDB->dropTable();
+    pMyDB->dropTable();//???
     delete ui;
 }
 
 void MainWindow::on_connButton_clicked()
 {
-    if ((socketPut.state()!=QAbstractSocket::ConnectedState)||(socketPut.state()!=QAbstractSocket::ConnectingState)){ //НЕ ПРОВЕРЯЕТ!!!
-        socketPut.connectToHost(address, port);
-        connect(&socketPut,SIGNAL(connected()),this,SLOT(slotConnected()));
-        connect(&socketPut,SIGNAL(disconnected()),this,SLOT(slotDisconnected()));
-        connect(&socketPut,SIGNAL(readyRead()),this,SLOT(readFromServer()));
-        }
+    emit toConnect();
+
    }
 
 void MainWindow::on_disconButton_clicked()
 {
-    socketPut.close();
+    emit toDisconnect();
 }
 
 void MainWindow::slotConnected(){
     ui->connecIndic->setPixmap(QPixmap("connect.png"));
     ui->statusLabel->setText("Connected");
+    ui->authButton->setEnabled(true);
+    ui->regButton->setEnabled(true);
+    ui->disconButton->setEnabled(true);
+    ui->loginEdit->setEnabled(true);
+    ui->passwordEdit->setEnabled(true);
 }
 
 void MainWindow::slotDisconnected(){
     ui->connecIndic->setPixmap(QPixmap("noconnect.png"));
     ui->statusLabel->setText("Disconnected");
+    ui->authButton->setEnabled(false);
+    ui->regButton->setEnabled(false);
+    ui->sendButton->setEnabled(false);
+    ui->banButton->setEnabled(false);
+    ui->disconButton->setEnabled(false);
+    ui->LeaveChatButton->setEnabled(false);
+    ui->banButton->setEnabled(false);
+    ui->unButton->setEnabled(false);
+    ui->find->setEnabled(false);
+    ui->findUserEdit->clear();
+    ui->findUserEdit->setEnabled(false);
+    ui->loginEdit->setEnabled(false);
+    ui->passwordEdit->setEnabled(false);
+    ui->logoutButton->setEnabled(false);
 }
 
 void MainWindow::on_regButton_clicked()
 {
-    MyRequest regRequest;
-    regRequest.setMethod("POST");
-    regRequest.setVersion("HTTP/1.1");
-    regRequest.setPath("/reg");
-
-    login=ui->loginEdit->text();
-    password=ui->passwordEdit->text();
-    qDebug()<<"Login: "<<login<<" Password: "<<password;
-
-    regRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject;
-    jsonObject["Login"] = login;
-    jsonObject["Password"] = password;
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray regData = document.toJson();
-
-    regRequest.write(regData, true, &socketPut);
+    QString login=ui->loginEdit->text();
+    QString password=ui->passwordEdit->text();
+    emit toRegister(login, password);
 }
 
 void MainWindow::on_authButton_clicked()
 {
-    authorizationFlag=false;
-    this->Rooms.clear();
-    ui->roomBox->clear();
-    ui->chatBrowser->clear();
+    emit toAuthentificate(ui->loginEdit->text(), ui->passwordEdit->text());
 
-    MyRequest authRequest;
-    authRequest.setMethod("GET");
-    authRequest.setVersion("HTTP/1.1");
-    authRequest.setPath("/auth");
-
-    login=ui->loginEdit->text();
-    password=ui->passwordEdit->text();
-
-    authRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject;
-    jsonObject["Login"] = login;
-    jsonObject["Password"] = password;
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray authData = document.toJson();
-
-    authRequest.write(authData, true, &socketPut);
 }
 
-void MainWindow::readFromServer()
-{
-    MyResponse& presponse=*new MyResponse();
 
-    while (socketPut.bytesAvailable() &&
-           presponse.getStatus()!=MyResponse::complete &&
-           presponse.getStatus()!=MyResponse::abort_size &&
-           presponse.getStatus()!=MyResponse::abort_broken)
-
-    {
-        presponse.readFromSocket(socketPut);
-    }
-
-    QByteArray reqType=presponse.findHeader("request-type");
-    if(QString::localeAwareCompare(reqType, "Authorization")==0)
-    {
-        if (!authorizationFlag)
-        {
-            QByteArray bodyData(presponse.getBody());
-            QJsonDocument doc=QJsonDocument::fromJson(bodyData);
-            QJsonObject buffer=doc.object();
-
-            authorizationToken=buffer["Authorization_token"].toString();
-
-            int i=1;
-            while(buffer[QString::number(i)+"Room"].toString()!=""){
-                Rooms.append(buffer[QString::number(i)+"Room"].toString());
-                i++;
-            }
-
-            for(auto& el:Rooms)
-            {
-                ui->roomBox->addItem(el);
-            }
-
-            authorizationFlag=true;
-            if (authorizationToken=="")
-                authorizationFlag=false;
-        }
-        if ((QString::localeAwareCompare(presponse.returnStatus(), "200")==0)&&(authorizationFlag==true)){
-            ui->statusLabel->setText("Authorized");
-        }
-        else{
-            ui->statusLabel->setText("Unauthorized");
-        }
-    }
-    else if(QString::localeAwareCompare(reqType, "Registration")==0){
-        if (QString::localeAwareCompare(presponse.returnStatus(), "200")==0){
-            ui->statusLabel->setText("Registered");
-        }
-        else{
-            ui->statusLabel->setText("Unregistered");
-        }
-    }
-}
 void MainWindow::on_sendButton_clicked()
 {
-    MyRequest sendRequest;
-    sendRequest.setMethod("PUT");
-    sendRequest.setVersion("HTTP/1.1");
-    sendRequest.setPath("/send");
-
     QString text=ui->messageEdit->text();
-
-    sendRequest.appendHeader("Content-Type", "application/json");
-    QJsonObject jsonObject;
-    jsonObject["message"] = text;
-
-    QString roomId=ui->roomBox->currentText();
-    jsonObject["room_id"] = roomId;
-
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray sendData = document.toJson();
-
-    sendRequest.write(sendData, true, &socketPut);
+    emit toSend(contactLogin, text);
 }
 
-void MainWindow::incomingMessageMWSlot(QString message)
-{
-    pMyDB->insertMessage(message);
-    QList<QString> textList=pMyDB->takeMessages();
-    ui->chatBrowser->clear();
-
-    for(QString & x:textList)
-        ui->chatBrowser->append(x);
-}
 
 void MainWindow::syncConnected()
 {
-    ui->connecSyncIndic->setPixmap(QPixmap("connect.png"));
     ui->statusLabel->setText("Sync");
 }
 
 void MainWindow::syncDisconnected()
 {
-    ui->connecSyncIndic->setPixmap(QPixmap("noconnect.png"));
     ui->statusLabel->setText("Nosync");
 }
 
@@ -222,44 +139,167 @@ void MainWindow::syncDisconnected()
     emit stopSync();
 }*/
 
-void MainWindow::on_roomBox_activated(const QString &arg1)
-{
-    if (count!=0)
-    {
-        thread->exit();
-    }
-    count++;
-
-    pMyDB->dropTable();
-    pMyDB->createTable();
-    int lastId=pMyDB->selectMessageId()+1;
-    QString arg=arg1;
-    QString authToken=authorizationToken.mid(0, 16);
-    authToken+="_"+arg;
-
-    thread = new SyncThread(authToken, this, lastId);
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-
-    thread->start();
-    QObject::connect(thread, SIGNAL(syncConnected()), this, SLOT(syncConnected()));
-    QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
-    QObject::connect(thread, SIGNAL(incomingMessageSync(QString)), this, SLOT(incomingMessageMWSlot(QString)));
-    QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot()));
-}
 
 void MainWindow::on_find_clicked()
 {
-    MyRequest sendRequest;
-    sendRequest.setMethod("POST");
-    sendRequest.setVersion("HTTP/1.1");
-    sendRequest.setPath("/create_room");
+    emit toFind(ui->findUserEdit->text());
+}
 
-    QJsonObject jsonObject;
-    jsonObject["creatorLogin"] = login;
-    jsonObject["clientLogin"]=ui->findUserEdit->text();
 
-    QJsonDocument document=QJsonDocument(jsonObject);
-    QByteArray sendData = document.toJson();
 
-    sendRequest.write(sendData, true, &socketPut);
+void MainWindow::on_actionExit_2_triggered()
+{
+    //pMyDB->dropTable();
+    this->close();
+}
+
+
+void MainWindow::on_tableView_activated(const QModelIndex &index)
+{
+    contactLogin=ui->tableView->model()->data(index).toString();
+
+    QList<QString> textList=pMyDB->takeMessages(contactLogin);
+    ui->chatBrowser->clear();
+
+    for(QString & x:textList)
+        ui->chatBrowser->append(x);
+
+    pMyDB->printTable();
+
+
+}
+
+void MainWindow::authPassSlot()
+{
+    contactLogin="";
+
+    //ui->tableView->setAlternatingRowColors(true);
+    //QPalette bgpal;
+    //bgpal.setColor (QPalette::Background, QColor (255, 0 , 0, 255));
+    //ui->tableView->setPalette(bgpal);
+    //MyDelegate* delegate;
+    //ui->tableView->setItemDelegate(delegate);
+    rooms->select();
+
+    ui->authButton->setEnabled(false);
+    ui->regButton->setEnabled(false);
+    ui->sendButton->setEnabled(true);
+    ui->banButton->setEnabled(true);
+    ui->disconButton->setEnabled(true);
+    ui->LeaveChatButton->setEnabled(true);
+    ui->banButton->setEnabled(true);
+    ui->unButton->setEnabled(true);
+    ui->find->setEnabled(true);
+    ui->findUserEdit->setEnabled(true);
+    ui->loginEdit->setEnabled(false);
+    ui->passwordEdit->setEnabled(false);
+    ui->logoutButton->setEnabled(true);
+
+}
+
+void MainWindow::on_banButton_clicked()
+{
+    emit toBan(ui->findUserEdit->text());
+}
+
+/*void MainWindow::incomingRoomMWSlot(Room r, QString s)
+{
+    pMyDB->insertRoom(r);
+    Contact c;
+    c.Login=r.Name;
+    c.IdRoom=r.Id;
+    pMyDB->insertContact(c);
+    authorizationToken=s;
+
+    clientState.SetToken(authorizationToken);
+    clientState.SetRooms(pMyDB);
+    clientState.SetLastEvents(pMyDB);
+    rooms->select();
+
+
+    emit clientStateChanged(clientState);
+
+}*/
+
+
+
+/*void MainWindow::incomingMessageMWSlot(Event message)
+{
+    pMyDB->insertMessage(message.Content, message.Id, message.IdRoom);
+
+    clientState.SetLastEvents(pMyDB);
+
+    if(contactLogin!=""){
+    QList<QString> textList=pMyDB->takeMessages(contactLogin);
+    ui->chatBrowser->clear();
+
+    for(QString & x:textList)
+        ui->chatBrowser->append(x);}
+
+    emit clientStateChanged(clientState);
+
+
+
+    /*QList<QString> textList=pMyDB->takeMessages();
+    ui->chatBrowser->clear();
+
+    for(QString & x:textList)
+        ui->chatBrowser->append(x);
+}*/
+
+
+
+
+void MainWindow::on_unButton_clicked()
+{
+    emit toUnBan(ui->findUserEdit->text());
+}
+
+void MainWindow::setStatus(QString str)
+{
+    ui->statusLabel->setText(str);
+}
+
+void MainWindow::on_LeaveChatButton_clicked()
+{
+    emit toLeave(contactLogin);
+}
+
+void MainWindow::receiveMessage(Event message)
+{
+    QString roomName=pMyDB->selectRoomName(message.idRoom);
+    if(roomName==contactLogin&&roomName!=""){
+    ui->chatBrowser->append(message.content);
+    }
+}
+
+void MainWindow::on_logoutButton_clicked()
+{
+    pMyDB->dropTable();
+    pMyDB->createTable();
+    ui->chatBrowser->clear();
+    rooms->select();
+    ui->loginEdit->clear();
+    ui->passwordEdit->clear();
+
+
+    ui->sendButton->setEnabled(false);
+    ui->banButton->setEnabled(false);
+
+    ui->LeaveChatButton->setEnabled(false);
+    ui->banButton->setEnabled(false);
+    ui->unButton->setEnabled(false);
+    ui->find->setEnabled(false);
+    ui->findUserEdit->setEnabled(false);
+    ui->logoutButton->setEnabled(false);
+    ui->authButton->setEnabled(true);
+    ui->regButton->setEnabled(true);
+    ui->disconButton->setEnabled(true);
+    ui->loginEdit->setEnabled(true);
+    ui->passwordEdit->setEnabled(true);
+
+    ui->passwordEdit->clear();
+    ui->loginEdit->clear();
+
+    emit toLogout();
 }

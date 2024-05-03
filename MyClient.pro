@@ -20,7 +20,17 @@ SOURCES += main.cpp\
     mydatabase.cpp \
     myresponse.cpp \
     worker.cpp \
-    syncthread.cpp
+    syncthread.cpp \
+    clientstate.cpp \
+    clientlogic.cpp \
+    registrator.cpp \
+    authorizer.cpp \
+    sender.cpp \
+    mydelegate.cpp \
+    contactcreator.cpp \
+    leaver.cpp \
+    banner.cpp \
+    unbanner.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
@@ -28,10 +38,36 @@ HEADERS  += mainwindow.h \
     mydatabase.h \
     myresponse.h \
     worker.h \
-    syncthread.h
+    syncthread.h \
+    room.h \
+    contact.h \
+    clientstate.h \
+    event.h \
+    clientlogic.h \
+    commonprotocol.h \
+    account.h \
+    registrator.h \
+    authorizer.h \
+    sender.h \
+    mydelegate.h \
+    contactcreator.h \
+    leaver.h \
+    banner.h \
+    unbanner.h \
+    netconfig.h
 
 FORMS    += mainwindow.ui
 
 CONFIG +=C++11
 
+
+win32:CONFIG(release, debug|release): LIBS +=-LD:/tools/OpenSSL/vc-win32/lib/ -llibcrypto
+
+INCLUDEPATH += D:/tools/OpenSSL/vc-win32/include
+DEPENDPATH += D:/tools/OpenSSL/vc-win32/include
+
+win32:CONFIG(release, debug|release): LIBS +=-LD:/tools/OpenSSL/vc-win32/lib/ -llibssl
+
+INCLUDEPATH += D:/tools/OpenSSL/vc-win32/include
+DEPENDPATH += D:/tools/OpenSSL/vc-win32/include
 

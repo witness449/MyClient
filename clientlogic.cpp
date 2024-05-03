@@ -13,13 +13,13 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
     QTextStream in(&file);
-    adr=in.readLine();
-    port=in.readLine().toInt();
+    netconfig.adr=in.readLine();
+    netconfig.port=in.readLine().toInt();
     file.close();
 
     clientState.setLastEvents(pMyDB);
     clientState.setRooms(pMyDB);
-    address.setAddress(adr);
+    netconfig.address.setAddress(netconfig.adr);
 }
 
 
@@ -31,7 +31,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
          QSslCertificate cert(&certfile,QSsl::Pem);
          socketPut.setLocalCertificate(cert);
          certfile.close();*/
-         socketPut.connectToHostEncrypted(adr, port);
+         socketPut.connectToHostEncrypted(netconfig.adr, netconfig.port);
          QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), &socketPut, static_cast<void (QSslSocket::*)()>(&QSslSocket::ignoreSslErrors));
          //QObject::connect(&socketPut, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors), this, &MainWindow::printSslErrors);
          connect(&socketPut,SIGNAL(connected()),this,SLOT(slotConnected()));

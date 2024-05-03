@@ -53,7 +53,8 @@ HEADERS  += mainwindow.h \
     contactcreator.h \
     leaver.h \
     banner.h \
-    unbanner.h
+    unbanner.h \
+    netconfig.h
 
 FORMS    += mainwindow.ui
 

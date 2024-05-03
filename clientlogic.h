@@ -16,13 +16,12 @@
 #include "leaver.h"
 #include "banner.h"
 #include "unbanner.h"
+#include "netconfig.h"
 
 class ClientLogic : public QObject
 {
 
-    QString adr;
-    qint16 port;
-    QHostAddress address;
+    NetConfig netconfig;
     MyDatabase* pMyDB;
     ClientState clientState;
     QSslSocket socketPut;

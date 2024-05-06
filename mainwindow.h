@@ -13,6 +13,7 @@
 #include <QSqlTableModel>
 #include <QItemSelection>
 
+//Класс пользовательского интерфейса
 namespace Ui {
 class MainWindow;
 }
@@ -31,39 +32,31 @@ private slots:
     void on_disconButton_clicked(); //Действия для отключения от сервера
     void on_regButton_clicked(); //Действи по кнопке "Регистрация"
     void on_authButton_clicked(); //Действия по кнопке "Авторизация"
-    void on_sendButton_clicked(); //Действи япо кнопке "Отправка сообщения"
-    //void on_roomBox_activated(const QString &arg1); //Действия при активации выбора чата
+    void on_sendButton_clicked(); //Действия по кнопке "Отправка сообщения"
+    void on_find_clicked(); //Действия по кнопке Find
+    void on_actionExit_triggered(); //Действия по пункту меню Exit
+    void on_banButton_clicked(); //Действия по кноке Ban
+    void on_unButton_clicked(); //Действия по кнопке UnBan
+    void on_LeaveChatButton_clicked(); //Действия по кнопке Leave
+    void on_logoutButton_clicked(); //Действия по кнопке Logout
 
-    //Слоты для оргазиции подключения и отправки сообщений
+    //Слоты сигнализирующие об установлении и потере связи с сервером
     void slotConnected();
     void slotDisconnected();
 
-    //Слоты для оргазиции синхронизации с сервером
-    //void incomingMessageMWSlot(Event event);
-    void syncConnected();
-    void syncDisconnected();
-    //void readFromServer();
-
-    void on_find_clicked();
-    void on_actionExit_2_triggered();
-
+    //Действия по активации выбранного контакта из списка контактов
     void on_tableView_activated(const QModelIndex &index);
+    //Изменение доступности определенных действий при прохождении аутентификации
     void authPassSlot();
-
-    void on_banButton_clicked();
-
-    void on_unButton_clicked();
-
+    //Слот утсановки статуса в стаутсной строке
     void setStatus(QString);
-
-    void on_LeaveChatButton_clicked();
+    //Отображение полуечнного сообщеняи в окне текущего чата
     void receiveMessage(Event);
 
-    void on_logoutButton_clicked();
 
 signals:
-    void stopSync();
-    void clientStateChanged(ClientState);
+
+    //Сигналы передаваемые объекту ClientLogic
     void toConnect();
     void toRegister(QString, QString);
     void toAuthentificate(QString, QString);
@@ -79,9 +72,11 @@ private:
 
     Ui::MainWindow *ui;
 
-    MyDatabase* pMyDB; //Указатель набазу данных
+    MyDatabase* pMyDB; //Указатель на базу данных
 
+    //Указатель на модель чатов
     QSqlTableModel* rooms;
+    //Идентифкатор активного контакта (того контакта с которым пользователь ведет переписку)
     QString contactLogin="";
 
 };

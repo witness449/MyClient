@@ -9,7 +9,7 @@
 #include "room.h"
 #include "event.h"
 #include <QStandardItem>
-#include "mydelegate.h"
+
 
 
 
@@ -24,10 +24,6 @@ MainWindow::MainWindow(MyDatabase* pMDB, QWidget *parent) :
 
     pMyDB=pMDB;
     pMyDB->printTable();
-
-    //QList<QString> textList=pMyDB->takeMessages();
-    /*for(QString & x:textList)
-    ui->chatBrowser->append(x);*/
 
     rooms=new QSqlTableModel(this, pMyDB->getDBPointer());
     rooms->setTable("Rooms");
@@ -59,7 +55,7 @@ MainWindow::MainWindow(MyDatabase* pMDB, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    pMyDB->dropTable();//???
+    pMyDB->dropTable();
     delete ui;
 }
 
@@ -124,32 +120,15 @@ void MainWindow::on_sendButton_clicked()
 }
 
 
-void MainWindow::syncConnected()
-{
-    ui->statusLabel->setText("Sync");
-}
-
-void MainWindow::syncDisconnected()
-{
-    ui->statusLabel->setText("Nosync");
-}
-
-/*void MainWindow::on_pushButton_clicked()
-{
-    emit stopSync();
-}*/
-
-
 void MainWindow::on_find_clicked()
 {
     emit toFind(ui->findUserEdit->text());
 }
 
 
-
-void MainWindow::on_actionExit_2_triggered()
+void MainWindow::on_actionExit_triggered()
 {
-    //pMyDB->dropTable();
+    pMyDB->dropTable();
     this->close();
 }
 
@@ -164,21 +143,11 @@ void MainWindow::on_tableView_activated(const QModelIndex &index)
     for(QString & x:textList)
         ui->chatBrowser->append(x);
 
-    pMyDB->printTable();
-
-
 }
 
 void MainWindow::authPassSlot()
 {
     contactLogin="";
-
-    //ui->tableView->setAlternatingRowColors(true);
-    //QPalette bgpal;
-    //bgpal.setColor (QPalette::Background, QColor (255, 0 , 0, 255));
-    //ui->tableView->setPalette(bgpal);
-    //MyDelegate* delegate;
-    //ui->tableView->setItemDelegate(delegate);
     rooms->select();
 
     ui->authButton->setEnabled(false);
@@ -201,53 +170,6 @@ void MainWindow::on_banButton_clicked()
 {
     emit toBan(ui->findUserEdit->text());
 }
-
-/*void MainWindow::incomingRoomMWSlot(Room r, QString s)
-{
-    pMyDB->insertRoom(r);
-    Contact c;
-    c.Login=r.Name;
-    c.IdRoom=r.Id;
-    pMyDB->insertContact(c);
-    authorizationToken=s;
-
-    clientState.SetToken(authorizationToken);
-    clientState.SetRooms(pMyDB);
-    clientState.SetLastEvents(pMyDB);
-    rooms->select();
-
-
-    emit clientStateChanged(clientState);
-
-}*/
-
-
-
-/*void MainWindow::incomingMessageMWSlot(Event message)
-{
-    pMyDB->insertMessage(message.Content, message.Id, message.IdRoom);
-
-    clientState.SetLastEvents(pMyDB);
-
-    if(contactLogin!=""){
-    QList<QString> textList=pMyDB->takeMessages(contactLogin);
-    ui->chatBrowser->clear();
-
-    for(QString & x:textList)
-        ui->chatBrowser->append(x);}
-
-    emit clientStateChanged(clientState);
-
-
-
-    /*QList<QString> textList=pMyDB->takeMessages();
-    ui->chatBrowser->clear();
-
-    for(QString & x:textList)
-        ui->chatBrowser->append(x);
-}*/
-
-
 
 
 void MainWindow::on_unButton_clicked()
@@ -281,7 +203,6 @@ void MainWindow::on_logoutButton_clicked()
     rooms->select();
     ui->loginEdit->clear();
     ui->passwordEdit->clear();
-
 
     ui->sendButton->setEnabled(false);
     ui->banButton->setEnabled(false);

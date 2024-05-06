@@ -29,23 +29,19 @@ public:
     ~MyDatabase();
 
 
-    //void insertClient(QString); //Внести клиента в контакты
-     //QString selectClient (QString); //Выбрать клиента
-
-    void insertMessage(Event e); //Внести сообщение в текущий чат
-    void insertRoom(Room r);
-    void insertContact(Contact c);
-    int selectRoomId(Room r);
-    QString selectRoomName(int roomId);
-    void deleteRoom(Room r);
+    void insertMessage(Event e); //Внести сообщение в таблицу Events
+    void insertRoom(Room r); //Внести чат в таблицу Rooms
+    void insertContact(Contact c); //Внести контакт в таблицу Contacts
+    int selectRoomId(Room r); //Получить идентифкатор чата
+    QString selectRoomName(int roomId); //Получить имя чата (вообще имя контакта) по идентифкатору чата
+    void deleteRoom(Room r); //Удалить чат
 
 
-    //int selectMessageId(); //Получение идентификатора последнего сообщения в текущем чате
-    //QList<QString> takeMessages();//Получить сообщения текущего чата
-    QList<QString> const takeMessages(QString);
-    QMap<int, bool> const selectRooms();
-    QMap<int, int> const selectTopMessages();
+    QList<QString> const takeMessages(QString); //Получить все сообщения по имени чата
+    QMap<int, bool> const selectRooms(); //Получить словарь: ключ идентифкатор чата, значение признак активности
+    QMap<int, int> const selectTopMessages(); //получить словарь: ключ идентифкатор чата, значение - идентификатор последнего сообщения в чате
 
+    //Получить указатель на базу данных
     QSqlDatabase getDBPointer()
     {
         return myDB;

@@ -3,6 +3,7 @@
 
 #include <QString>
 
+//Структура содержащая сведения о чате
 struct Room
 {
     int id;

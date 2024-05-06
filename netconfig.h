@@ -3,6 +3,7 @@
 
 #include <QHostAddress>
 
+//Структура содержащая сведения о сетвеой конфигурации
 struct NetConfig
 {
     QString adr;

@@ -3,6 +3,7 @@
 
 #include <QString>
 
+//Структура содержащая сведения о контакте
 struct Contact
 {
     QString login;

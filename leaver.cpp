@@ -2,18 +2,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include "util.h"
 
-QMap<int, QString> TokenParse3(QString& accessToken, QString &login)
-{
-    QStringList pieces=accessToken.split(" ");
-    login=pieces[0];
-    QMap<int, QString> roomsTokens;
-    for (int i=1; i<pieces.size(); i+=2)
-    {
-         roomsTokens.insert(pieces[i].toInt(), pieces[i+1]);
-    }
-    return roomsTokens;
-}
+
 
 
 Leaver::Leaver(Account& ac, QSslSocket* ps, MyDatabase* pDB):account (ac)
@@ -35,7 +26,7 @@ void Leaver::sendRequest()
     r.name=contactLogin;
     int roomId=pMyDB->selectRoomId(r);
 
-    QMap<int, QString> rooms=TokenParse3(account.accessToken, account.login);
+    QMap<int, QString> rooms=TokenParse(account.accessToken, account.login);
     QString roomToken="";
     auto it=rooms.find(roomId);
     if (it!=rooms.end()) roomToken=*it;

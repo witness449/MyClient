@@ -7,6 +7,7 @@
 #include "commonprotocol.h"
 #include "mydatabase.h"
 
+//Класс обеспевичающий взаимодействие по протоколу удаления из черного списка
 class Unbanner:public CommonProtocol
 {
     MyDatabase* pMyDB;

@@ -19,25 +19,24 @@ SOURCES += main.cpp\
     myrequest.cpp \
     mydatabase.cpp \
     myresponse.cpp \
-    worker.cpp \
     syncthread.cpp \
     clientstate.cpp \
     clientlogic.cpp \
     registrator.cpp \
     authorizer.cpp \
     sender.cpp \
-    mydelegate.cpp \
     contactcreator.cpp \
     leaver.cpp \
     banner.cpp \
-    unbanner.cpp
+    unbanner.cpp \
+    synchrologic.cpp \
+    util.cpp
 
 HEADERS  += mainwindow.h \
     util.h \
     myrequest.h \
     mydatabase.h \
     myresponse.h \
-    worker.h \
     syncthread.h \
     room.h \
     contact.h \
@@ -49,12 +48,12 @@ HEADERS  += mainwindow.h \
     registrator.h \
     authorizer.h \
     sender.h \
-    mydelegate.h \
     contactcreator.h \
     leaver.h \
     banner.h \
     unbanner.h \
-    netconfig.h
+    netconfig.h \
+    synchrologic.h
 
 FORMS    += mainwindow.ui
 

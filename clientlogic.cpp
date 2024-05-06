@@ -25,7 +25,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
  void ClientLogic::connectSlot()
  {
-     if ((socketPut.state()!=QAbstractSocket::ConnectedState)||(socketPut.state()!=QAbstractSocket::ConnectingState)){ //НЕ ПРОВЕРЯЕТ!!!
+     if ((socketPut.state()!=QAbstractSocket::ConnectedState)||(socketPut.state()!=QAbstractSocket::ConnectingState)){
          /*QFile certfile("D:\\HttpQt\\MyClient\\MyClient\\MyClient\\ca.crt");
          certfile.open(QIODevice::ReadOnly);
          QSslCertificate cert(&certfile,QSsl::Pem);
@@ -162,18 +162,6 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      emit clientStateChanged(clientState);
      emit emitMessage(message);
 
-     /*if(contactLogin!=""){
-     QList<QString> textList=pMyDB->takeMessages(contactLogin);
-     //ui->chatBrowser->clear();
-
-     //for(QString & x:textList)
-         //ui->chatBrowser->append(x);
-     }*/
-    /*QList<QString> textList=pMyDB->takeMessages();
-     ui->chatBrowser->clear();
-
-     for(QString & x:textList)
-         ui->chatBrowser->append(x);*/
  }
 
  void ClientLogic::incomingRoomMWSlot(Room r, QString s)
@@ -262,19 +250,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
 
  void ClientLogic::startSynchronization()
  {
-     /*if (count!=0)
-     {
-         thread->exit();
-     }
-     count++;*/
-
-     //pMyDB->dropTable();
-     //pMyDB->createTable();
-     //int lastId=pMyDB->selectMessageId()+1;
      int lastId=0;
-     //QString arg="arg";
-     //QString authToken=account.accessToken.mid(0, 16);
-     //authToken+="_"+arg;
 
      thread = new SyncThread(clientState, account.accessToken, account.login, this, lastId);
      connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
@@ -286,7 +262,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
      QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
      QObject::connect(thread, SIGNAL(outcomingRoomSync(Room, QString)), this, SLOT(outcomingRoomMWSlot(Room, QString)));
-     //QObject::connect(this, SIGNAL (stopSync()), thread, SLOT(stopSyncSlot(tokenChangedMWSlot(QString))));
+
  }
 
  void ClientLogic::disConnectSlot()

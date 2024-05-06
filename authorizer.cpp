@@ -56,14 +56,9 @@ void Authorizer::readResponse(MyResponse* presponse)
         QJsonArray RoomsArr= buffer["rooms"].toArray();
 
         int i=1;
-        //while(buffer[QString::number(i)+"Room"].toString()!=""){
-            //Rooms.append(buffer[QString::number(i)+"Room"].toString()); //Логин RoomsArr
-            //RoomNames.insert(buffer[QString::number(i)+"Room"].toString().split(" ")[1], buffer[QString::number(i)+"Room"].toString().split(" ")[0].toInt()); //Логиен RoomID
-            //i++;
+
         for (auto el:RoomsArr)
         {
-            //Rooms.append(el.toObject()["id"].toString());
-            //RoomNames.insert(el.toObject()["login"].toString(), el.toObject()["id"].toString().toInt());
             Room room;
             room.id=el.toObject()["id"].toString().toInt();
             room.name=el.toObject()["login"].toString();

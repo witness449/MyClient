@@ -260,7 +260,7 @@ ClientLogic::ClientLogic(MyDatabase* pD, QObject *parent) :QObject(parent), pMyD
      QObject::connect(thread, SIGNAL(syncDisconnected()), this, SLOT(syncDisconnected()));
      QObject::connect(thread, SIGNAL(incomingMessageEventSync(Event)), this, SLOT(incomingMessageMWSlot(Event)));
      QObject::connect(thread, SIGNAL(incomingRoomSync(Room, QString)), this, SLOT(incomingRoomMWSlot(Room, QString)));
-     QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSLOT(ClientState)));
+     QObject::connect(this, SIGNAL(clientStateChanged(ClientState)), thread, SLOT(clientStateChangedSlot(ClientState)));
      QObject::connect(thread, SIGNAL(outcomingRoomSync(Room, QString)), this, SLOT(outcomingRoomMWSlot(Room, QString)));
 
  }

@@ -3,6 +3,7 @@
 
 #include <QString>
 
+//Структура сведений об аккаунте
 struct Account
 {
     QString login;

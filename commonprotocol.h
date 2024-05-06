@@ -6,15 +6,21 @@
 #include <QSslSocket>
 #include "account.h"
 
+//Абстрактный класс (фактически интерфейс) взаимодействия с сервером
 class CommonProtocol
 {
 protected:
+    //запрос на сервер
     MyRequest request;
+    //ответ от сервера
     MyResponse* response;
+    //Сокет
     QSslSocket* socket;
 
 public:
+    //Метод отправки запроса
     virtual void sendRequest()=0;
+    //Метод получения ответа
     virtual void readResponse(MyResponse*)=0;
 
 };

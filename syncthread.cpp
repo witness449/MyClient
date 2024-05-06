@@ -1,7 +1,7 @@
 #include "syncthread.h"
 #include "myresponse.h"
 #include "myrequest.h"
-#include "worker.h"
+#include "synchrologic.h"
 
 
 SyncThread::SyncThread(ClientState &cState, QString authToken,  QString log, QObject* parent, int last_Id):QThread(parent)
@@ -14,11 +14,11 @@ SyncThread::SyncThread(ClientState &cState, QString authToken,  QString log, QOb
 
 void SyncThread::run()
 {
-    Worker*pw=new Worker(clientState, authorizationToken, login, this, lastId);
+    SynchroLogic*pw=new SynchroLogic(clientState, authorizationToken, login, this, lastId);
     QObject::connect(pw, SIGNAL(incomingMessageEvent(Event)), this, SLOT(incomingMessageEventSlot(Event)));
-    QObject::connect(pw, SIGNAL(workerConnected()), this, SLOT (workerConnectedSlot()));
-    QObject::connect(pw, SIGNAL(workerDisonnected()), this, SLOT (workerDisconnectedSlot()));
-    QObject::connect(this, SIGNAL (clientStateChangedFromSync(ClientState)), pw, SLOT (clientStateChangedWorkerSlot(ClientState)));
+    QObject::connect(pw, SIGNAL(synchroLogicConnected()), this, SLOT (synchroLogicConnectedSlot()));
+    QObject::connect(pw, SIGNAL(synchroLogicDisonnected()), this, SLOT (synchroLogicDisconnectedSlot()));
+    QObject::connect(this, SIGNAL (clientStateChangedFromSync(ClientState)), pw, SLOT (clientStateChangedSynchroLogicSlot(ClientState)));
     QObject::connect(pw, SIGNAL(incomingRoom(Room, QString)), this, SLOT(incomingRoomSlot(Room, QString)));
     QObject::connect(pw, SIGNAL(outcomingRoom(Room, QString)), this, SLOT(outcomingRoomSlot(Room, QString)));
 
@@ -33,17 +33,17 @@ void SyncThread::incomingMessageEventSlot(Event event)
     emit incomingMessageEventSync(ev);
 }
 
-void SyncThread::workerConnectedSlot()
+void SyncThread::synchroLogicConnectedSlot()
 {
     emit syncConnected();
 }
 
-void SyncThread::workerDisconnectedSlot()
+void SyncThread::synchroLogicDisconnectedSlot()
 {
     emit syncDisconnected();
 }
 
-void SyncThread::clientStateChangedSLOT(ClientState cs)
+void SyncThread::clientStateChangedSlot(ClientState cs)
 {
     clientState=cs;
     emit clientStateChangedFromSync(clientState);

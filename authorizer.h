@@ -6,6 +6,7 @@
 #include "commonprotocol.h"
 #include "mydatabase.h"
 
+//Класс обеспечивающий взаимодействие по протоколу аутентификации-авторизации
 class Authorizer: public CommonProtocol
 {
     MyDatabase* pMyDB;

@@ -13,11 +13,17 @@ class MyRequest
 {
 public:
     MyRequest();
+    //Установить http путь
     void setPath(QByteArray);
+    //Установить http версию
     void setVersion(QByteArray);
+    //Установить http метод
     void setMethod(QByteArray);
+    //Добавить заголовок
     void appendHeader(QByteArray, QByteArray);
+    //Сформировать запрос в виде массива байтов
     QByteArray formRequest();
+    //Отправить запрос
     void write(QByteArray, bool, QTcpSocket*);
     bool writeToSocket(QByteArray, QTcpSocket*);
     void writeHeaders(QTcpSocket*);

@@ -2,7 +2,7 @@
 #define REGISTRATOR_H
 #include "commonprotocol.h"
 
-
+//Класс обеспевичающий взаимодействие по протоколу регистрации
 class Registrator:public CommonProtocol
 {
     Account& account;

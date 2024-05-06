@@ -1,4 +1,4 @@
-#include "worker.h"
+#include "synchrologic.h"
 #include <QHostAddress>
 #include "myrequest.h"
 #include "myresponse.h"
@@ -6,50 +6,41 @@
 #include <thread>
 #include <QFile>
 #include "event.h"
-
-QMap<int, QString> TokenParse(QString& accessToken, QString &login)
-{
-    QStringList pieces=accessToken.split(" ");
-    login=pieces[0];
-    QMap<int, QString> roomsTokens;
-    for (int i=1; i<pieces.size(); i+=2)
-    {
-         roomsTokens.insert(pieces[i].toInt(), pieces[i+1]);
-    }
-    return roomsTokens;
-}
+#include "sender.h"
+#include "util.h"
 
 
 
-Worker::Worker(ClientState cState,  QString authToken, QString log, QObject *parent, int last_Id)
+
+SynchroLogic::SynchroLogic(ClientState cState,  QString authToken, QString log, QObject *parent, int last_Id)
 {
     QFile file ("clientConfig.txt");
     file.open(QIODevice::ReadOnly);
 
     QTextStream in(&file);
 
-    adr=in.readLine();
-    port=in.readLine().toInt();
+    netconfig.adr=in.readLine();
+    netconfig.port=in.readLine().toInt();
 
     file.close();
 
-    adress.setAddress(adr);
+    netconfig.address.setAddress(netconfig.adr);
 
     login=log;
     clientState=cState;
     QString token=cState.getToken();
     QMap<int, QString> rooms=TokenParse(token, login);
 
-    connect(this, SIGNAL(startWorker()), this, SLOT(startWorkerSlot()));
+    connect(this, SIGNAL(startSynchroLogic()), this, SLOT(startSynchroLogicSlot()));
     connect(this, SIGNAL(startSync()), this, SLOT(startSyncSlot()));
     connect (this, SIGNAL (ToConnect()), this, SLOT(connectSlot()));
 
-    emit startWorker();
+    emit startSynchroLogic();
 
     presponse=new MyResponse();
 }
 
-void Worker::startWorkerSlot()
+void SynchroLogic::startSynchroLogicSlot()
 {
     /*socketSync=new QTcpSocket();
     if (socketSync->state()!=QAbstractSocket::ConnectedState){
@@ -69,24 +60,24 @@ void Worker::startWorkerSlot()
     }
 }
 
-void Worker::connectSlot()
+void SynchroLogic::connectSlot()
 {
-    socketSync->connectToHostEncrypted(adr, port);
+    socketSync->connectToHostEncrypted(netconfig.adr, netconfig.port);
     //socketSync->connectToHost(adress, port);
 }
 
-void Worker::slotSyncConnected(){
-    emit workerConnected();
+void SynchroLogic::slotSyncConnected(){
+    emit synchroLogicConnected();
     emit startSync();
 }
 
-void Worker::clientStateChangedWorkerSlot(ClientState cs)
+void SynchroLogic::clientStateChangedSynchroLogicSlot(ClientState cs)
 {
     clientState=cs;
     emit startSync();
 }
 
-void Worker:: startSyncSlot()
+void SynchroLogic:: startSyncSlot()
 {
     presponse->clear();
     MyRequest syncRequest;
@@ -103,7 +94,7 @@ void Worker:: startSyncSlot()
     syncRequest.write(ba, true, socketSync);
 }
 
-void Worker::readFromServer()
+void SynchroLogic::readFromServer()
 {
     QByteArray dataRead;
     QByteArray qbabuffer;
@@ -167,6 +158,6 @@ void Worker::readFromServer()
     }
   }
 
-void Worker::slotSyncDisconnected(){
-    emit workerDisconnected();
+void SynchroLogic::slotSyncDisconnected(){
+    emit synchroLogicDisconnected();
 }

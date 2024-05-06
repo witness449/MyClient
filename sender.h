@@ -7,6 +7,7 @@
 #include "commonprotocol.h"
 #include "mydatabase.h"
 
+//Класс обеспечивающий взаимодействие по протоколу отправки сообщения
 class Sender:public CommonProtocol
 {
     MyDatabase* pMyDB;
@@ -15,8 +16,8 @@ public:
     Sender(Account& account, QSslSocket* ps, MyDatabase* pMyDB);
     void sendRequest();
     void readResponse(MyResponse*);
-    QString contactLogin;
-    QString txt;
+    QString contactLogin; //Идентификатор контакта
+    QString txt; //Текст сообщения
     QString status;
 };
 

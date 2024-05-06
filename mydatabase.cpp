@@ -55,9 +55,6 @@ void MyDatabase::createTable(){
 };
 
 
-
-
-
 void MyDatabase:: dropTable(){
     if(myDB.isValid()){
     QSqlQuery query(myDB);
@@ -124,45 +121,7 @@ void MyDatabase::printTable(){//РАСПЕЧАТАТЬ
         qDebug()<<"db is not valid";
 }
 
-/*QString MyDatabase::selectClient(QString user)
-{
-    if (myDB.isValid()){
-        QSqlQuery query(myDB);
-        QString selectUser="SELECT * FROM Clients WHERE login='"+user+"'";
-        qDebug()<<"Select query status: "<<query.exec(selectUser);
-        query.next();
-        QSqlRecord rec =query.record();
-        QString password=query.value(rec.indexOf("password")).toString();
-        qDebug()<<"password: "<<password;
-        return password;
-    }
-}*/
 
-/*void MyDatabase::insertTestMessages()
-{
-    if (myDB.isValid()){
-        QSqlQuery query(myDB);
-        QString insert ="INSERT INTO TestMessagess(text) VALUES ('test message')";
-        bool res=query.exec(insert);
-        qDebug()<<"Insert query status: "<<res;
-        if (!res) qDebug()<<query.lastError();
-        this->printTable();
-    }
-}*/
-
-/*QList<QString> MyDatabase::takeMessages(){
-    QSqlQuery query2(myDB);
-    QString select2="SELECT * FROM TestMessagess";
-    qDebug()<<"Select query status: "<<query2.exec(select2);
-    QSqlRecord rec2 =query2.record();
-
-    QList<QString> textList;
-
-    while (query2.next()){
-        textList.append(query2.value(rec2.indexOf("text")).toString());
-        }
-    return textList;
-}*/
 
 QList<QString> const MyDatabase::takeMessages(QString login){
     QSqlQuery query2(myDB);
@@ -179,21 +138,6 @@ QList<QString> const MyDatabase::takeMessages(QString login){
         }
     return textList;
 }
-
-/*int MyDatabase::selectMessageId()
-{
-    QSqlQuery query2(myDB);
-    QString select2="SELECT * FROM TestMessagess";
-    qDebug()<<"Select query status: "<<query2.exec(select2);
-    QSqlRecord rec2 =query2.record();
-
-    int lastId=0;
-
-    while (query2.next()){
-        lastId=query2.value(rec2.indexOf("id")).toInt();
-        }
-    return lastId;
-}*/
 
 void MyDatabase::insertMessage(Event e)
 {
@@ -324,14 +268,4 @@ void MyDatabase::deleteRoom(Room r)
     }
 }
 
-/*void MyDatabase::insertClient(QString login){
-    for(int i=0;i<1; i++){
-        if (myDB.isValid()){
-            QSqlQuery query(myDB);
-            QString insert ="INSERT INTO Clients(login) VALUES ('"+login+"')";
-            bool res=query.exec(insert);
-            qDebug()<<"Insert query status: "<<res;
-            if (!res) qDebug()<<query.lastError();
-        }
-    }
-}*/
+

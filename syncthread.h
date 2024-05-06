@@ -14,15 +14,15 @@ class SyncThread:public QThread
 {
     Q_OBJECT
 public:
-    //В конструктор передается токен авторизации и id последнего загруженного сообщения в текущем чате
+    //В конструктор передается токен авторизации и идентификатор пользователя
     explicit SyncThread(ClientState &clientState, QString authToken, QString login,  QObject *parent = 0, int lastId=0);
     void run();
 
 private slots:
      void incomingMessageEventSlot(Event);
-     void workerConnectedSlot();
-     void workerDisconnectedSlot();
-     void clientStateChangedSLOT(ClientState);
+     void synchroLogicConnectedSlot();
+     void synchroLogicDisconnectedSlot();
+     void clientStateChangedSlot(ClientState);
      void incomingRoomSlot(Room, QString);
      void outcomingRoomSlot(Room, QString);
 
@@ -39,8 +39,7 @@ signals:
 
 
 private:
-    //QTcpSocket* socketSync;
-    int lastId;
+    int lastId; //Obsolete
     QString authorizationToken;
     QString login;
     ClientState clientState;

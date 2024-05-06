@@ -7,6 +7,7 @@
 #include "commonprotocol.h"
 #include "mydatabase.h"
 
+//Класс обеспечивающий взаимодействие по протоколу внесения в черный список
 class Banner:public CommonProtocol
 {
     MyDatabase* pMyDB;

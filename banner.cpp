@@ -2,19 +2,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-
-QMap<int, QString> TokenParse4(QString& accessToken, QString &login)
-{
-    QStringList pieces=accessToken.split(" ");
-    login=pieces[0];
-    QMap<int, QString> roomsTokens;
-    for (int i=1; i<pieces.size(); i+=2)
-    {
-         roomsTokens.insert(pieces[i].toInt(), pieces[i+1]);
-    }
-    return roomsTokens;
-}
-
+#include "util.h"
 
 Banner::Banner(Account& ac, QSslSocket* ps, MyDatabase* pDB):account (ac)
 {
@@ -34,7 +22,7 @@ void Banner::sendRequest()
     r.name=contactLogin;
     int roomId=pMyDB->selectRoomId(r);
 
-    QMap<int, QString> rooms=TokenParse4(account.accessToken, account.login);
+    QMap<int, QString> rooms=TokenParse(account.accessToken, account.login);
     QString roomToken="";
     auto it=rooms.find(roomId);
     if (it!=rooms.end()) roomToken=*it;

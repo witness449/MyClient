@@ -222,7 +222,7 @@
     <property name="title">
      <string>Menu</string>
     </property>
-    <addaction name="actionExit_2"/>
+    <addaction name="actionExit"/>
    </widget>
    <addaction name="menuExit"/>
   </widget>
@@ -236,11 +236,6 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionExit_2">
    <property name="text">
     <string>Exit</string>
    </property>
